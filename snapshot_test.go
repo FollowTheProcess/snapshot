@@ -162,13 +162,6 @@ func makeSnapshot(t *testing.T, shotter *snapshot.Shotter, content string) {
 
 	path := shotter.Path()
 
-	// If it already exists, no sense recreating it every time
-	_, err := os.Stat(path)
-	exists := err == nil
-	if exists {
-		return
-	}
-
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
 	// all directories along that path so find the last dir along the path
 	// and use that in the call to MkDirAll
