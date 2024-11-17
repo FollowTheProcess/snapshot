@@ -29,8 +29,6 @@ func Red(text string) string {
 }
 
 // sprint returns a string with a given colour and the reset code.
-//
-// It handles checking for NO_COLOR and FORCE_COLOR.
 func sprint(code, text string) string {
 	return code + text + codeReset
 }
