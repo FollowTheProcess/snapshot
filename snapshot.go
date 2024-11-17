@@ -71,14 +71,17 @@ func (s *Shotter) Snap(value any) {
 		content, err := val.Snap()
 		if err != nil {
 			s.tb.Fatalf("Snap() returned an error: %v", err)
+			return
 		}
 		current.Write(content)
-	case string:
-		current.WriteString(val)
+	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
+		// For any primitive type just use %v
+		fmt.Fprintf(current, "%v", val)
 	default:
 		// TODO(@FollowTheProcess): Every other type, maybe fall back to
 		// some sort of generic printing thing?
-		s.tb.Fatalf("Snap: unhandled type %T", val)
+		s.tb.Fatalf("Snap: unhandled type %[1]T, consider implementing snapshot.Snapper for %[1]T", val)
+		return
 	}
 
 	// Check if one exists already

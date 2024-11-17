@@ -2,6 +2,7 @@ package snapshot_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -51,13 +52,20 @@ func (p person) Snap() ([]byte, error) {
 	return []byte("custom snap yeah!\n"), nil
 }
 
+type explosion struct{}
+
+// Implement Snap for explosion.
+func (e explosion) Snap() ([]byte, error) {
+	return nil, errors.New("bang")
+}
+
 func TestSnap(t *testing.T) {
 	tests := []struct {
-		value           any    // Value to snap
-		name            string // Name of the test case (and snapshot file)
-		alreadyContains string // Create the snapshot file ahead of time with this content
-		clean           bool   // If a matching snapshot already exists, remove it first to test clean state
-		wantFail        bool   // Whether we want the test to fail
+		value        any    // Value to snap
+		name         string // Name of the test case (and snapshot file)
+		existingSnap string // Create the snapshot file ahead of time with this content
+		clean        bool   // If a matching snapshot already exists, remove it first to test clean state
+		wantFail     bool   // Whether we want the test to fail
 	}{
 		{
 			name:     "string pass new snap",
@@ -66,22 +74,45 @@ func TestSnap(t *testing.T) {
 			clean:    true, // Delete any matching snap that may already exist so we know it's new
 		},
 		{
-			name:            "string pass already exists",
-			value:           "Hello snap\n",
-			wantFail:        false,
-			alreadyContains: "Hello snap\n",
+			name:         "string pass already exists",
+			value:        "Hello snap\n",
+			wantFail:     false,
+			existingSnap: "Hello snap\n",
 		},
 		{
-			name:            "string fail already exists",
-			value:           "Hello snap\n",
-			wantFail:        true,
-			alreadyContains: "some other content\n",
+			name:         "string fail already exists",
+			value:        "Hello snap\n",
+			wantFail:     true, // Content in previous snap differs
+			existingSnap: "some other content\n",
 		},
 		{
-			name:            "custom snap implementation",
-			value:           person{name: "Tom", age: 30},
-			wantFail:        false,
-			alreadyContains: "custom snap yeah!\n",
+			name:         "custom snap implementation",
+			value:        person{name: "Tom", age: 30},
+			wantFail:     false,
+			existingSnap: "custom snap yeah!\n",
+		},
+		{
+			name:     "custom snap error",
+			value:    explosion{},
+			wantFail: true, // The Snap implementation errors -> test should fail
+		},
+		{
+			name:         "int",
+			value:        42,
+			wantFail:     false,
+			existingSnap: "42",
+		},
+		{
+			name:         "bool",
+			value:        true,
+			wantFail:     false,
+			existingSnap: "true",
+		},
+		{
+			name:         "float64",
+			value:        3.14159,
+			wantFail:     false,
+			existingSnap: "3.14159",
 		},
 	}
 
@@ -100,12 +131,18 @@ func TestSnap(t *testing.T) {
 				deleteSnapshot(t, shotter)
 			}
 
-			if tt.alreadyContains != "" {
+			if tt.existingSnap != "" {
 				// Make the snapshot ahead of time with the given content
-				makeSnapshot(t, shotter, tt.alreadyContains)
+				makeSnapshot(t, shotter, tt.existingSnap)
 			}
 
-			// Do the snap
+			// Do the snap:
+			// - If there was no previous snap (clean: true), all this does is test we can successfully
+			//    save snaps for the first time
+			// - If there was a snap it was either created from a previous run (existingSnap: "") and
+			//    what we're testing is the libraries ability to compare things automatically
+			// - If we arranged to have a previous snap artificially created (existingSnap: "<something>")
+			//    this is how we test that the library can recognise mismatching content between snapshots
 			shotter.Snap(tt.value)
 
 			if tb.failed != tt.wantFail {
@@ -124,6 +161,13 @@ func makeSnapshot(t *testing.T, shotter *snapshot.Shotter, content string) {
 	t.Helper()
 
 	path := shotter.Path()
+
+	// If it already exists, no sense recreating it every time
+	_, err := os.Stat(path)
+	exists := err == nil
+	if exists {
+		return
+	}
 
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
 	// all directories along that path so find the last dir along the path
