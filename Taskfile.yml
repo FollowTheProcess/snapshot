@@ -9,7 +9,7 @@ tasks:
   default:
     desc: List all available tasks
     silent: true
-    cmds: 
+    cmds:
       - task --list
 
   tidy:
@@ -36,14 +36,20 @@ tasks:
     desc: Run the test suite
     sources:
       - "**/*.go"
-    cmds: 
+      - testdata/**/*
+      - go.mod
+      - go.sum
+    cmds:
       - go test -race ./... {{ .CLI_ARGS }}
 
   bench:
     desc: Run all project benchmarks
     sources:
       - "**/*.go"
-    cmds: 
+      - testdata/**/*
+      - go.mod
+      - go.sum
+    cmds:
       - go test ./... -run None -benchmem -bench . {{ .CLI_ARGS }}
 
   lint:
@@ -51,7 +57,7 @@ tasks:
     sources:
       - "**/*.go"
       - .golangci.yml
-    cmds: 
+    cmds:
       - golangci-lint run --fix
     preconditions:
       - sh: command -v golangci-lint
@@ -81,7 +87,7 @@ tasks:
 
   sloc:
     desc: Print lines of code
-    cmds: 
+    cmds:
       - fd . -e go | xargs wc -l | sort -nr | head
 
   clean:
