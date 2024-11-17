@@ -2,6 +2,7 @@ package snapshot_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/FollowTheProcess/snapshot"
-	"github.com/FollowTheProcess/test"
 )
 
 const (
@@ -42,13 +42,30 @@ func (t *TB) Fatalf(format string, args ...any) {
 	fmt.Fprintf(t.out, format, args...)
 }
 
+type person struct {
+	name string
+	age  int
+}
+
+// Implement Snap for person.
+func (p person) Snap() ([]byte, error) {
+	return []byte("custom snap yeah!\n"), nil
+}
+
+type explosion struct{}
+
+// Implement Snap for explosion.
+func (e explosion) Snap() ([]byte, error) {
+	return nil, errors.New("bang")
+}
+
 func TestSnap(t *testing.T) {
 	tests := []struct {
-		value      any    // Value to snap
-		name       string // Name of the test case (and snapshot file)
-		createWith string // Create the snapshot file ahead of time with this content
-		clean      bool   // If a matching snapshot already exists, remove it first to test clean state
-		wantFail   bool   // Whether we want the test to fail
+		value        any    // Value to snap
+		name         string // Name of the test case (and snapshot file)
+		existingSnap string // Create the snapshot file ahead of time with this content
+		clean        bool   // If a matching snapshot already exists, remove it first to test clean state
+		wantFail     bool   // Whether we want the test to fail
 	}{
 		{
 			name:     "string pass new snap",
@@ -57,16 +74,45 @@ func TestSnap(t *testing.T) {
 			clean:    true, // Delete any matching snap that may already exist so we know it's new
 		},
 		{
-			name:       "string pass already exists",
-			value:      "Hello snap\n",
-			wantFail:   false,
-			createWith: "Hello snap\n",
+			name:         "string pass already exists",
+			value:        "Hello snap\n",
+			wantFail:     false,
+			existingSnap: "Hello snap\n",
 		},
 		{
-			name:       "string fail already exists",
-			value:      "Hello snap\n",
-			wantFail:   true,
-			createWith: "some other content\n",
+			name:         "string fail already exists",
+			value:        "Hello snap\n",
+			wantFail:     true, // Content in previous snap differs
+			existingSnap: "some other content\n",
+		},
+		{
+			name:         "custom snap implementation",
+			value:        person{name: "Tom", age: 30},
+			wantFail:     false,
+			existingSnap: "custom snap yeah!\n",
+		},
+		{
+			name:     "custom snap error",
+			value:    explosion{},
+			wantFail: true, // The Snap implementation errors -> test should fail
+		},
+		{
+			name:         "int",
+			value:        42,
+			wantFail:     false,
+			existingSnap: "42",
+		},
+		{
+			name:         "bool",
+			value:        true,
+			wantFail:     false,
+			existingSnap: "true",
+		},
+		{
+			name:         "float64",
+			value:        3.14159,
+			wantFail:     false,
+			existingSnap: "3.14159",
 		},
 	}
 
@@ -79,18 +125,25 @@ func TestSnap(t *testing.T) {
 				t.Fatalf("%s initial failed state should be false", t.Name())
 			}
 
+			shotter := snapshot.New(tb)
+
 			if tt.clean {
-				deleteSnapshot(t)
+				deleteSnapshot(t, shotter)
 			}
 
-			if tt.createWith != "" {
+			if tt.existingSnap != "" {
 				// Make the snapshot ahead of time with the given content
-				makeSnapshot(t, tt.createWith)
+				makeSnapshot(t, shotter, tt.existingSnap)
 			}
 
-			// Do the snap
-			snapper := snapshot.New(tb)
-			snapper.Snap(tt.value)
+			// Do the snap:
+			// - If there was no previous snap (clean: true), all this does is test we can successfully
+			//    save snaps for the first time
+			// - If there was a snap it was either created from a previous run (existingSnap: "") and
+			//    what we're testing is the libraries ability to compare things automatically
+			// - If we arranged to have a previous snap artificially created (existingSnap: "<something>")
+			//    this is how we test that the library can recognise mismatching content between snapshots
+			shotter.Snap(tt.value)
 
 			if tb.failed != tt.wantFail {
 				t.Fatalf(
@@ -104,24 +157,17 @@ func TestSnap(t *testing.T) {
 	}
 }
 
-func snapShotPath(t *testing.T) string {
+func makeSnapshot(t *testing.T, shotter *snapshot.Shotter, content string) {
 	t.Helper()
 
-	// Base directory under testdata where all snapshots are kept
-	base := filepath.Join(test.Data(t), "snapshots")
+	path := shotter.Path()
 
-	// Name of the file generated from t.Name(), so for subtests and table driven tests
-	// this will be of the form TestSomething/subtest1 for example
-	file := fmt.Sprintf("%s.snap.txt", t.Name())
-
-	// Join up the base with the generate filepath
-	return filepath.Join(base, file)
-}
-
-func makeSnapshot(t *testing.T, content string) {
-	t.Helper()
-
-	path := snapShotPath(t)
+	// If it already exists, no sense recreating it every time
+	_, err := os.Stat(path)
+	exists := err == nil
+	if exists {
+		return
+	}
 
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
 	// all directories along that path so find the last dir along the path
@@ -137,9 +183,9 @@ func makeSnapshot(t *testing.T, content string) {
 	}
 }
 
-func deleteSnapshot(t *testing.T) {
+func deleteSnapshot(t *testing.T, shotter *snapshot.Shotter) {
 	t.Helper()
-	path := snapShotPath(t)
+	path := shotter.Path()
 
 	if err := os.RemoveAll(path); err != nil {
 		t.Fatalf("could noot delete snapshot: %v", err)
