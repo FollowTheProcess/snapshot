@@ -89,7 +89,8 @@ func TestSnap(t *testing.T) {
 			}
 
 			// Do the snap
-			snapshot.Snap(tb, tt.value)
+			snapper := snapshot.New(tb)
+			snapper.Snap(tt.value)
 
 			if tb.failed != tt.wantFail {
 				t.Fatalf(
