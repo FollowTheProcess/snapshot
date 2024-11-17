@@ -1,4 +1,4 @@
-# snapshot
+# Snapshot
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
 [![Go Reference](https://pkg.go.dev/badge/github.com/FollowTheProcess/snapshot.svg)](https://pkg.go.dev/github.com/FollowTheProcess/snapshot)
