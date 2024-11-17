@@ -56,15 +56,8 @@ func New(tb testing.TB, options ...Option) *Shotter { //nolint: thelper // This 
 func (s *Shotter) Snap(value any) {
 	s.tb.Helper()
 
-	// Base directory under testdata where all snapshots are kept
-	base := filepath.Join("testdata", "snapshots")
-
-	// Name of the file generated from t.Name(), so for subtests and table driven tests
-	// this will be of the form TestSomething/subtest1 for example
-	file := fmt.Sprintf("%s.snap.txt", s.tb.Name())
-
 	// Join up the base with the generate filepath
-	path := filepath.Join(base, file)
+	path := s.Path()
 
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
 	// all directories along that path so find the last dir along the path
@@ -74,14 +67,21 @@ func (s *Shotter) Snap(value any) {
 	current := &bytes.Buffer{}
 
 	switch val := value.(type) {
-	// TODO(@FollowTheProcess): A Snapper interface that users can implement
-	// to control how their types are serialised for a snapshot
-	case string:
-		current.WriteString(val)
+	case Snapper:
+		content, err := val.Snap()
+		if err != nil {
+			s.tb.Fatalf("Snap() returned an error: %v", err)
+			return
+		}
+		current.Write(content)
+	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
+		// For any primitive type just use %v
+		fmt.Fprintf(current, "%v", val)
 	default:
 		// TODO(@FollowTheProcess): Every other type, maybe fall back to
 		// some sort of generic printing thing?
-		s.tb.Fatalf("Snap: unhandled type %T", val)
+		s.tb.Fatalf("Snap: unhandled type %[1]T, consider implementing snapshot.Snapper for %[1]T", val)
+		return
 	}
 
 	// Check if one exists already
@@ -110,9 +110,27 @@ func (s *Shotter) Snap(value any) {
 		s.tb.Fatalf("Snap: could not read previous snapshot: %v", err)
 	}
 
+	// Normalise CRLF to LF everywhere
+	previous = bytes.ReplaceAll(previous, []byte("\r\n"), []byte("\n"))
+
 	if diff := diff.Diff("previous", previous, "current", current.Bytes()); diff != nil {
 		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
+}
+
+// Path returns the path that a snapshot would be saved at for any given test.
+func (s *Shotter) Path() string {
+	// Base directory under testdata where all snapshots are kept
+	base := filepath.Join("testdata", "snapshots")
+
+	// Name of the file generated from t.Name(), so for subtests and table driven tests
+	// this will be of the form TestSomething/subtest1 for example
+	file := fmt.Sprintf("%s.snap.txt", s.tb.Name())
+
+	// Join up the base with the generate filepath
+	path := filepath.Join(base, file)
+
+	return path
 }
 
 // fileExists returns whether a path exists and is a file.
