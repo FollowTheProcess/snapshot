@@ -26,12 +26,13 @@ if got != want {
 
 Then congratulations, you've done snapshot testing 🎉 In this case `want` is the snapshot.
 
-The trick is, when these values get large or complicated, it's difficult to manually create and maintain the snapshot every time. The next jump up is what's typically
-called "golden files".
+The trick is, when these values get large or complicated (imagine a complicated JSON document), it's difficult to manually create and maintain the snapshot every time.
+
+The next jump up is what's typically called "golden files".
 
 These are files (typically manually created) that contain the expected output, any difference in what your code produces to what's in the file is an error.
 
-Think of snapshot testing as an automated, configurable, and simple way of managing golden files. All you need to do is call `snapshot.Test(t, value)` and everything is handled for you!
+Think of snapshot testing as an automated, configurable, and simple way of managing golden files. All you need to do is call `Snap` and everything is handled for you!
 
 ## Installation
 
@@ -40,6 +41,23 @@ go get github.com/FollowTheProcess/snapshot@latest
 ```
 
 ## Quickstart
+
+```go
+import (
+    "testing"
+
+    "github.com/FollowTheProcess/snapshot"
+)
+
+func TestSnapshot(t *testing.T) {
+    snap := snapshot.New(t)
+
+    snap.Snap([]string{"hello", "there", "this", "is", "a", "snapshot"})
+
+    // This will store the above slice in testdata/snapshots/TestSnapShot.snap.txt
+    // then all future checks will compare against this snapshot
+}
+```
 
 ### Credits
 
