@@ -24,6 +24,27 @@ const (
 	defaultDirPermissions  = 0o755 // Default permissions for creating directories, same as unix mkdir
 )
 
+// Shotter holds configuration and state and is responsible for performing
+// the tests and managing the snapshots.
+type Shotter struct {
+	tb     testing.TB // The testing TB
+	update bool       // Whether to update the snapshots automatically, defaults to false
+}
+
+// New builds and returns a new [Shotter], applying configuration
+// via functional options.
+func New(tb testing.TB, options ...Option) *Shotter { //nolint: thelper // This actually isn't a helper
+	shotter := &Shotter{
+		tb: tb,
+	}
+
+	for _, option := range options {
+		option(shotter)
+	}
+
+	return shotter
+}
+
 // Snap takes a snapshot of value and compares it against the previous snapshot stored under
 // testdata/snapshots using the name of the test as the filename.
 //
@@ -32,15 +53,15 @@ const (
 //
 // If the current snapshot does not match the existing one, the test will fail with a rich diff
 // of the two snapshots for debugging.
-func Snap(tb testing.TB, value any) {
-	tb.Helper()
+func (s *Shotter) Snap(value any) {
+	s.tb.Helper()
 
 	// Base directory under testdata where all snapshots are kept
 	base := filepath.Join("testdata", "snapshots")
 
 	// Name of the file generated from t.Name(), so for subtests and table driven tests
 	// this will be of the form TestSomething/subtest1 for example
-	file := fmt.Sprintf("%s.snap.txt", tb.Name())
+	file := fmt.Sprintf("%s.snap.txt", s.tb.Name())
 
 	// Join up the base with the generate filepath
 	path := filepath.Join(base, file)
@@ -60,24 +81,24 @@ func Snap(tb testing.TB, value any) {
 	default:
 		// TODO(@FollowTheProcess): Every other type, maybe fall back to
 		// some sort of generic printing thing?
-		tb.Fatalf("Snap: unhandled type %T", val)
+		s.tb.Fatalf("Snap: unhandled type %T", val)
 	}
 
 	// Check if one exists already
 	exists, err := fileExists(path)
 	if err != nil {
-		tb.Fatalf("Snap: %v", err)
+		s.tb.Fatalf("Snap: %v", err)
 	}
 
 	if !exists {
 		// No previous snapshot, save the current one, potentially creating the
 		// directory structure for the first time, then pass the test by returning early
 		if err = os.MkdirAll(dir, defaultDirPermissions); err != nil {
-			tb.Fatalf("Snap: could not create snapshot dir: %v", err)
+			s.tb.Fatalf("Snap: could not create snapshot dir: %v", err)
 		}
 
 		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
-			tb.Fatalf("Snap: could not write snapshot: %v", err)
+			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
 		}
 		// We're done
 		return
@@ -86,11 +107,11 @@ func Snap(tb testing.TB, value any) {
 	// Previous snapshot already exists
 	previous, err := os.ReadFile(path)
 	if err != nil {
-		tb.Fatalf("Snap: could not read previous snapshot: %v", err)
+		s.tb.Fatalf("Snap: could not read previous snapshot: %v", err)
 	}
 
 	if diff := diff.Diff("previous", previous, "current", current.Bytes()); diff != nil {
-		tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
+		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
 }
 
