@@ -110,6 +110,9 @@ func (s *Shotter) Snap(value any) {
 		s.tb.Fatalf("Snap: could not read previous snapshot: %v", err)
 	}
 
+	// Normalise CRLF to LF everywhere
+	previous = bytes.ReplaceAll(previous, []byte("\r\n"), []byte("\n"))
+
 	if diff := diff.Diff("previous", previous, "current", current.Bytes()); diff != nil {
 		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
