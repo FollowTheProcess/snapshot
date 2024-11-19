@@ -8,6 +8,7 @@ package snapshot
 import (
 	"bytes"
 	"encoding"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -72,6 +73,13 @@ func (s *Shotter) Snap(value any) {
 		content, err := val.Snap()
 		if err != nil {
 			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
+			return
+		}
+		current.Write(content)
+	case json.Marshaler:
+		content, err := val.MarshalJSON()
+		if err != nil {
+			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
 			return
 		}
 		current.Write(content)
