@@ -32,6 +32,10 @@ func (t *TB) Name() string {
 	return t.name
 }
 
+func (t *TB) Logf(format string, args ...any) {
+	fmt.Fprintf(t.out, format, args...)
+}
+
 func (t *TB) Fatal(args ...any) {
 	t.failed = true
 	fmt.Fprint(t.out, args...)
@@ -57,6 +61,30 @@ type explosion struct{}
 // Implement Snap for explosion.
 func (e explosion) Snap() ([]byte, error) {
 	return nil, errors.New("bang")
+}
+
+// nosnap has no Snap implementation.
+type nosnap struct{}
+
+// textMarshaler is a struct that implements encoding.TextMarshaller.
+type textMarshaler struct{}
+
+func (t textMarshaler) MarshalText() (text []byte, err error) {
+	return []byte("MarshalText() called\n"), nil
+}
+
+// errMarshaler is a struct that implements encoding.TextMarshaller, but always returns an error.
+type errMarshaler struct{}
+
+func (t errMarshaler) MarshalText() (text []byte, err error) {
+	return nil, errors.New("MarshalText error")
+}
+
+// stringer is a struct that implements fmt.Stringer.
+type stringer struct{}
+
+func (s stringer) String() string {
+	return "String() called\n"
 }
 
 func TestSnap(t *testing.T) {
@@ -113,6 +141,28 @@ func TestSnap(t *testing.T) {
 			value:        3.14159,
 			wantFail:     false,
 			existingSnap: "3.14159",
+		},
+		{
+			name:     "no snap",
+			value:    nosnap{},
+			wantFail: false,
+		},
+		{
+			name:         "text marshaler",
+			value:        textMarshaler{},
+			wantFail:     false,
+			existingSnap: "MarshalText() called\n",
+		},
+		{
+			name:     "text marshaler error",
+			value:    errMarshaler{},
+			wantFail: true,
+		},
+		{
+			name:         "stringer",
+			value:        stringer{},
+			wantFail:     false,
+			existingSnap: "String() called\n",
 		},
 	}
 
