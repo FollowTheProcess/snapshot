@@ -89,7 +89,7 @@ func (s *Shotter) Snap(value any) {
 		fmt.Fprintf(current, "%v", val)
 	default:
 		// Fallback, use %#v as a best effort at generic printing
-		s.tb.Logf("Snap: falling back to GoString for %[1]T, consider implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer for %[1]T", val)
+		s.tb.Logf("Snap: falling back to GoString for %T, consider creating a new type and implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer", val)
 		fmt.Fprintf(current, "%#v", val)
 	}
 
