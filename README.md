@@ -135,7 +135,7 @@ The files will be named automatically after the test:
 
 ## Serialisation Rules
 
-snapshot deals with plain text files as snapshots, this keeps them easy to read/write for both computers and humans. But crucially, easy to diff in pull request reviews!
+`snapshot` deals with plain text files as snapshots, this keeps them easy to read/write for both computers and humans. But crucially, easy to diff in pull request reviews!
 
 Because of this, it needs to know how to serialise your value (which could be basically any valid construct in Go) to plain text, so we follow a few basic rules in priority order:
 
