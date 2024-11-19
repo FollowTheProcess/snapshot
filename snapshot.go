@@ -7,6 +7,7 @@ package snapshot
 
 import (
 	"bytes"
+	"encoding"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -70,18 +71,26 @@ func (s *Shotter) Snap(value any) {
 	case Snapper:
 		content, err := val.Snap()
 		if err != nil {
-			s.tb.Fatalf("Snap() returned an error: %v", err)
+			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
 			return
 		}
 		current.Write(content)
+	case encoding.TextMarshaler:
+		content, err := val.MarshalText()
+		if err != nil {
+			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
+			return
+		}
+		current.Write(content)
+	case fmt.Stringer:
+		current.WriteString(val.String())
 	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
 		// For any primitive type just use %v
 		fmt.Fprintf(current, "%v", val)
 	default:
-		// TODO(@FollowTheProcess): Every other type, maybe fall back to
-		// some sort of generic printing thing?
-		s.tb.Fatalf("Snap: unhandled type %[1]T, consider implementing snapshot.Snapper for %[1]T", val)
-		return
+		// Fallback, use %#v as a best effort at generic printing
+		s.tb.Logf("Snap: falling back to GoString for %[1]T, consider implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer for %[1]T", val)
+		fmt.Fprintf(current, "%#v", val)
 	}
 
 	// Check if one exists already
