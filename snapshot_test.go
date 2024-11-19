@@ -67,14 +67,14 @@ func (e explosion) Snap() ([]byte, error) {
 // nosnap has no Snap implementation.
 type nosnap struct{}
 
-// textMarshaler is a struct that implements encoding.TextMarshaller.
+// textMarshaler is a struct that implements encoding.TextMarshaler.
 type textMarshaler struct{}
 
 func (t textMarshaler) MarshalText() (text []byte, err error) {
 	return []byte("MarshalText() called\n"), nil
 }
 
-// errMarshaler is a struct that implements encoding.TextMarshaller, but always returns an error.
+// errMarshaler is a struct that implements encoding.TextMarshaler, but always returns an error.
 type errMarshaler struct{}
 
 func (t errMarshaler) MarshalText() (text []byte, err error) {
@@ -86,6 +86,20 @@ type stringer struct{}
 
 func (s stringer) String() string {
 	return "String() called\n"
+}
+
+// jsonMarshaler is a struct that implements json.Marshaler.
+type jsonMarshaler struct{}
+
+func (j jsonMarshaler) MarshalJSON() ([]byte, error) {
+	return []byte(`{"key": "value"}`), nil
+}
+
+// errJSONMarshaler is a struct that implements json.Marshaler, but always returns an error.
+type errJSONMarshaler struct{}
+
+func (e errJSONMarshaler) MarshalJSON() ([]byte, error) {
+	return nil, errors.New("MarshalJSON error")
 }
 
 func TestSnap(t *testing.T) {
@@ -164,6 +178,17 @@ func TestSnap(t *testing.T) {
 			value:        stringer{},
 			wantFail:     false,
 			existingSnap: "String() called\n",
+		},
+		{
+			name:         "json marshaler",
+			value:        jsonMarshaler{},
+			wantFail:     false,
+			existingSnap: `{"key": "value"}`,
+		},
+		{
+			name:     "json marshaler error",
+			value:    errJSONMarshaler{},
+			wantFail: true,
 		},
 	}
 
