@@ -77,9 +77,6 @@ func (s *Shotter) Snap(value any) {
 		}
 		current.Write(content)
 	case json.Marshaler:
-		// TODO(@FollowTheProcess): If it's JSON, I'd like to make the file extension JSON
-		// for better editor support etc.
-
 		// Use MarshalIndent for better readability
 		content, err := json.MarshalIndent(val, "", "  ")
 		if err != nil {
