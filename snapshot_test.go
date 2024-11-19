@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/FollowTheProcess/snapshot"
 )
@@ -204,6 +205,26 @@ func TestSnap(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	value := []string{"hello", "this", "is", "a", "snapshot"}
+	snap := snapshot.New(t, snapshot.Update(true))
+
+	now := time.Now()
+	snap.Snap(value)
+
+	info, err := os.Stat(snap.Path())
+	if err != nil {
+		t.Fatalf("could not get snapshot file info: %v", err)
+	}
+
+	// Best way I can think of to validate that update will always write the file
+	// if the mod time and the time of the Snap are sufficiently far apart, it's likely
+	// that it didn't get updated
+	if delta := info.ModTime().Sub(now); delta > 100*time.Millisecond {
+		t.Errorf("updated snapshot file was not created recently enough: delta = %v, threshold = %v", delta, 1*time.Second)
 	}
 }
 

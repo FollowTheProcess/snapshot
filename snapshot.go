@@ -113,7 +113,12 @@ func (s *Shotter) Snap(value any) {
 		return
 	}
 
-	// TODO(@FollowTheProcess): Actually implement update
+	if s.update {
+		s.tb.Logf("Snap: updating snapshot %s", path)
+		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
+			s.tb.Fatalf("Snap: could not update snapshot: %v", err)
+		}
+	}
 
 	// Previous snapshot already exists
 	previous, err := os.ReadFile(path)
