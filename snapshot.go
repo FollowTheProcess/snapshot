@@ -99,25 +99,21 @@ func (s *Shotter) Snap(value any) {
 		s.tb.Fatalf("Snap: %v", err)
 	}
 
-	if !exists {
+	if !exists || s.update {
 		// No previous snapshot, save the current one, potentially creating the
 		// directory structure for the first time, then pass the test by returning early
 		if err = os.MkdirAll(dir, defaultDirPermissions); err != nil {
 			s.tb.Fatalf("Snap: could not create snapshot dir: %v", err)
 		}
 
+		if s.update {
+			s.tb.Logf("Snap: updating snapshot %s", path)
+		}
 		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
 			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
 		}
 		// We're done
 		return
-	}
-
-	if s.update {
-		s.tb.Logf("Snap: updating snapshot %s", path)
-		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
-			s.tb.Fatalf("Snap: could not update snapshot: %v", err)
-		}
 	}
 
 	// Previous snapshot already exists
