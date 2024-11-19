@@ -140,7 +140,7 @@ The files will be named automatically after the test:
 Because of this, it needs to know how to serialise your value (which could be basically any valid construct in Go) to plain text, so we follow a few basic rules in priority order:
 
 - **`snapshot.Snapper`:** If your type implements the `Snapper` interface, this is preferred over all other potential serialisation, this allows you to have total control over how your type is snapshotted, do whatever you like in the `Snap` method, just return a `[]byte` that you'd like to look at in the snapshot and thats it!
-- **[json.Marshaler]:** If your type implements [json.Marshaler], this will be used and the snapshot will be a valid JSON file
+- **[json.Marshaler]:** If your type implements [json.Marshaler], this will be used and the snapshot will be a valid JSON file (using MarshalIndent for readability)
 - **[encoding.TextMarshaler]:** If your type implements [encoding.TextMarshaler], this will be used to render your value to the snapshot
 - **[fmt.Stringer]:** If your type implements the [fmt.Stringer] interface, this is then used instead
 - **Primitive Types:** Any primitive type in Go (`bool`, `int`, `string` etc.) is serialised according to the `%v` verb in the [fmt] package
