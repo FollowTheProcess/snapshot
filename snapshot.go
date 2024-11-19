@@ -113,6 +113,8 @@ func (s *Shotter) Snap(value any) {
 		return
 	}
 
+	// TODO(@FollowTheProcess): Actually implement update
+
 	// Previous snapshot already exists
 	previous, err := os.ReadFile(path)
 	if err != nil {
