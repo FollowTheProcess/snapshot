@@ -220,11 +220,13 @@ func TestUpdate(t *testing.T) {
 		t.Fatalf("could not get snapshot file info: %v", err)
 	}
 
+	threshold := 100 * time.Millisecond
+
 	// Best way I can think of to validate that update will always write the file
 	// if the mod time and the time of the Snap are sufficiently far apart, it's likely
 	// that it didn't get updated
-	if delta := info.ModTime().Sub(now); delta > 100*time.Millisecond {
-		t.Errorf("updated snapshot file was not created recently enough: delta = %v, threshold = %v", delta, 1*time.Second)
+	if delta := info.ModTime().Sub(now); delta > threshold {
+		t.Errorf("updated snapshot file was not created recently enough: delta = %v, threshold = %v", delta, threshold)
 	}
 }
 
