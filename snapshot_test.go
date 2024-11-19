@@ -183,7 +183,7 @@ func TestSnap(t *testing.T) {
 			name:         "json marshaler",
 			value:        jsonMarshaler{},
 			wantFail:     false,
-			existingSnap: `{"key": "value"}`,
+			existingSnap: "{\n  \"key\": \"value\"\n}",
 		},
 		{
 			name:     "json marshaler error",
