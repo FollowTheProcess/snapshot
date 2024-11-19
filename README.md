@@ -83,7 +83,7 @@ Not very helpful if you want your snapshots to be as readable as possible!
 With `snapshot`, you have full control over how your type is serialised to the snapshot file (if you need it). You can either:
 
 - Let `snapshot` take a best guess at how to serialise your type
-- Implement one of `snapshot.Snapper`, [encoding.TextMarshaler], or [fmt.Stringer] to override how it's serialised
+- Implement one of `snapshot.Snapper`, [json.Marshaler], [encoding.TextMarshaler], or [fmt.Stringer] to override how it's serialised
 
 See [Serialisation Rules](#serialisation-rules) 👇🏻 for more info on how `snapshot` decides how to snap your value
 
