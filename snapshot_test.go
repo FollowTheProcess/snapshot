@@ -223,7 +223,7 @@ func TestSnap(t *testing.T) {
 
 			if tb.failed != tt.wantFail {
 				t.Fatalf(
-					"tb.failed = %v, tt.wantFail = %v, output: %s\n",
+					"tb.failed =\t%v\ntt.wantFail =\t%v\noutput =\t%s\n",
 					tb.failed,
 					tt.wantFail,
 					buf.String(),

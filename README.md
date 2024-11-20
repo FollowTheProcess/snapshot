@@ -10,9 +10,7 @@
 Simple, intuitive snapshot testing with Go 📸
 
 > [!WARNING]
-> **snapshot is in early development and is not yet ready for use**
-
-![caution](./img/caution.png)
+> **snapshot is in early development and is not yet stable**
 
 - [Snapshot](#snapshot)
   - [Project Description](#project-description)
