@@ -92,13 +92,13 @@ Let's say you've got a bunch of snapshots saved already, and you change your imp
 `snapshot` lets you do this with one line of configuration, which you can set with a test flag or environment variable, or however you like:
 
 ```go
+// something_test.go
 import (
   "testing"
 
   "github.com/FollowTheProcess/snapshot"
 )
 
-// something_test.go
 var update = flag.Bool("update", false, "Update golden files")
 
 func TestSomething(t *testing.T) {
