@@ -99,7 +99,7 @@ import (
   "github.com/FollowTheProcess/snapshot"
 )
 
-var update = flag.Bool("update", false, "Update golden files")
+var update = flag.Bool("update", false, "Update snapshots automatically")
 
 func TestSomething(t *testing.T) {
   // Tell snapshot to update everything if the -update flag was used
