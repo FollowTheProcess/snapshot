@@ -142,7 +142,7 @@ Because of this, it needs to know how to serialise your value (which could be ba
 - **[encoding.TextMarshaler]:** If your type implements [encoding.TextMarshaler], this will be used to render your value to the snapshot
 - **[fmt.Stringer]:** If your type implements the [fmt.Stringer] interface, this is then used instead
 - **Primitive Types:** Any primitive type in Go (`bool`, `int`, `string` etc.) is serialised according to the `%v` verb in the [fmt] package
-- **Fallback:** If your type hasn't been caught by any of the above rules, we will snap it using the `GoString` mechanism (the `%#v` print verb) so e.g. a `[]string` would serialise as `[]string{"one", "two", "three}`
+- **Fallback:** If your type hasn't been caught by any of the above rules, we will snap it using the `GoString` mechanism (the `%#v` print verb) so e.g. a `[]string` would serialise as `[]string{"one", "two", "three"}`
 
 > [!TIP]
 > `snapshot` effectively goes through this list top to bottom to discover how to serialise your type, so mechanisms at the top are preferentially chosen over mechanisms lower down. If your snapshot doesn't look quite right, consider implementing a method higher up the list to get the behaviour you need
