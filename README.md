@@ -1,3 +1,7 @@
+<p align="center">
+<img src="https://github.com/FollowTheProcess/snapshot/raw/main/img/logo.jpg" alt="logo" width=75%>
+</p>
+
 # Snapshot
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
