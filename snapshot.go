@@ -35,7 +35,10 @@ type Shotter struct {
 
 // New builds and returns a new [Shotter], applying configuration
 // via functional options.
-func New(tb testing.TB, options ...Option) *Shotter { //nolint: thelper // This actually isn't a helper
+func New( //nolint: thelper // This actually isn't a helper
+	tb testing.TB,
+	options ...Option,
+) *Shotter {
 	shotter := &Shotter{
 		tb: tb,
 	}

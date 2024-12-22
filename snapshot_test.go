@@ -251,7 +251,11 @@ func TestUpdate(t *testing.T) {
 	// if the mod time and the time of the Snap are sufficiently far apart, it's likely
 	// that it didn't get updated
 	if delta := info.ModTime().Sub(now); delta > threshold {
-		t.Errorf("updated snapshot file was not created recently enough: delta = %v, threshold = %v", delta, threshold)
+		t.Errorf(
+			"updated snapshot file was not created recently enough: delta = %v, threshold = %v",
+			delta,
+			threshold,
+		)
 	}
 }
 
