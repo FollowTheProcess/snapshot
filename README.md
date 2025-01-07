@@ -23,6 +23,7 @@ Simple, intuitive snapshot testing with Go 📸
   - [Why use `snapshot`?](#why-use-snapshot)
     - [📝 Total Control over Serialisation](#-total-control-over-serialisation)
     - [🔄 Automatic Updating](#-automatic-updating)
+    - [🗑️ Tidying Up](#️-tidying-up)
     - [🤓 Follows Go Conventions](#-follows-go-conventions)
   - [Serialisation Rules](#serialisation-rules)
     - [Credits](#credits)
@@ -118,6 +119,30 @@ func TestSomething(t *testing.T) {
 
 > [!WARNING]
 > This will update *all* snapshots in one go, so make sure you run the tests normally first and check the diffs to make sure the changes are as expected
+
+### 🗑️ Tidying Up
+
+One criticism of snapshot testing is that if you restructure or rename your tests, you could end up with duplicated snapshots and/or messy unused ones cluttering up your repo. This is where the `Clean` option comes in:
+
+```go
+// something_test.go
+import (
+  "testing"
+
+  "github.com/FollowTheProcess/snapshot"
+)
+
+var clean = flag.Bool("clean", false, "Clean up unused snapshots")
+
+func TestSomething(t *testing.T) {
+  // Tell snapshot to prune the snapshots directory of unused snapshots
+  snap := snapshot.New(t, snapshot.Clean(*clean))
+
+  // .... rest of the test
+}
+```
+
+This will erase all the snapshots currently managed by snapshot, and then run the tests as normal, creating the snapshots for all the new or renamed tests for the first time. The net result is a tidy snapshots directory with only what's needed
 
 ### 🤓 Follows Go Conventions
 

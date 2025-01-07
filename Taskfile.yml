@@ -33,7 +33,7 @@ tasks:
         msg: requires gofumpt, run `go install mvdan.cc/gofumpt@latest`
     cmds:
       - gofumpt -w -extra .
-      - golines . --ignore-generated --write-output
+      - golines . --ignore-generated --write-output --max-len 120
 
   test:
     desc: Run the test suite

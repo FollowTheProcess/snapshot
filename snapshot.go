@@ -26,20 +26,21 @@ const (
 	defaultDirPermissions  = 0o755 // Default permissions for creating directories, same as unix mkdir
 )
 
-// Shotter holds configuration and state and is responsible for performing
+// TODO(@FollowTheProcess): A storage backend interface, one for files (real) and one for in memory (testing), also opens up
+// for others to be implemented
+
+// SnapShotter holds configuration and state and is responsible for performing
 // the tests and managing the snapshots.
-type Shotter struct {
+type SnapShotter struct {
 	tb     testing.TB // The testing TB
-	update bool       // Whether to update the snapshots automatically, defaults to false
+	update bool       // Whether to update the snapshots automatically
+	clean  bool       // Erase snapshots prior to the run
 }
 
-// New builds and returns a new [Shotter], applying configuration
+// New builds and returns a new [SnapShotter], applying configuration
 // via functional options.
-func New( //nolint: thelper // This actually isn't a helper
-	tb testing.TB,
-	options ...Option,
-) *Shotter {
-	shotter := &Shotter{
+func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // This actually isn't a helper
+	shotter := &SnapShotter{
 		tb: tb,
 	}
 
@@ -58,16 +59,23 @@ func New( //nolint: thelper // This actually isn't a helper
 //
 // If the current snapshot does not match the existing one, the test will fail with a rich diff
 // of the two snapshots for debugging.
-func (s *Shotter) Snap(value any) {
+func (s *SnapShotter) Snap(value any) {
 	s.tb.Helper()
 
-	// Join up the base with the generate filepath
 	path := s.Path()
 
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
 	// all directories along that path so find the last dir along the path
 	// and use that in the call to MkDirAll
 	dir := filepath.Dir(path)
+
+	// If clean is set, erase the snapshot directory and then carry on
+	if s.clean {
+		if err := os.RemoveAll(dir); err != nil {
+			s.tb.Fatalf("failed to delete %s: %v", dir, err)
+			return
+		}
+	}
 
 	current := &bytes.Buffer{}
 
@@ -96,7 +104,7 @@ func (s *Shotter) Snap(value any) {
 		current.Write(content)
 	case fmt.Stringer:
 		current.WriteString(val.String())
-	case string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
+	case string, []byte, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
 		// For any primitive type just use %v
 		fmt.Fprintf(current, "%v", val)
 	default:
@@ -143,7 +151,7 @@ func (s *Shotter) Snap(value any) {
 }
 
 // Path returns the path that a snapshot would be saved at for any given test.
-func (s *Shotter) Path() string {
+func (s *SnapShotter) Path() string {
 	// Base directory under testdata where all snapshots are kept
 	base := filepath.Join("testdata", "snapshots")
 
