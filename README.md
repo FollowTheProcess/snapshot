@@ -135,6 +135,11 @@ The files will be named automatically after the test:
 - Single tests will be given the name of the test e.g. `func TestMyThing(t *testing.T)` will produce a snapshot file of `testdata/snapshots/TestMyThing.snap.txt`
 - Sub tests (including table driven tests) will use the sub test name e.g. `testdata/snapshots/TestAdd/positive_numbers.snap.txt`
 
+> [!TIP]
+> If you want to split your snapshots with more granularity, you can name your table driven cases with a `/` in them (e.g. `"Group/subtest name"`) and the directory hierarchy will be created automatically for you, completely cross platform!
+>
+> See an example of this [here](https://github.com/FollowTheProcess/test/blob/main/test_test.go)
+
 ## Serialisation Rules
 
 `snapshot` deals with plain text files as snapshots, this keeps them easy to read/write for both computers and humans. But crucially, easy to diff in pull request reviews!
@@ -142,7 +147,7 @@ The files will be named automatically after the test:
 Because of this, it needs to know how to serialise your value (which could be basically any valid construct in Go) to plain text, so we follow a few basic rules in priority order:
 
 - **`snapshot.Snapper`:** If your type implements the `Snapper` interface, this is preferred over all other potential serialisation, this allows you to have total control over how your type is snapshotted, do whatever you like in the `Snap` method, just return a `[]byte` that you'd like to look at in the snapshot and thats it!
-- **[json.Marshaler]:** If your type implements [json.Marshaler], this will be used and the snapshot will be a valid JSON file (using MarshalIndent for readability)
+- **[json.Marshaler]:** If your type implements [json.Marshaler], this will be used and the snapshot will be a valid JSON file (using `MarshalIndent` for readability)
 - **[encoding.TextMarshaler]:** If your type implements [encoding.TextMarshaler], this will be used to render your value to the snapshot
 - **[fmt.Stringer]:** If your type implements the [fmt.Stringer] interface, this is then used instead
 - **Primitive Types:** Any primitive type in Go (`bool`, `int`, `string` etc.) is serialised according to the `%v` verb in the [fmt] package
