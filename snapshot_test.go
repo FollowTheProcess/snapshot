@@ -259,7 +259,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func makeSnapshot(t *testing.T, shotter *snapshot.Shotter, content string) {
+func makeSnapshot(t *testing.T, shotter *snapshot.SnapShotter, content string) {
 	t.Helper()
 
 	path := shotter.Path()
@@ -278,11 +278,11 @@ func makeSnapshot(t *testing.T, shotter *snapshot.Shotter, content string) {
 	}
 }
 
-func deleteSnapshot(t *testing.T, shotter *snapshot.Shotter) {
+func deleteSnapshot(t *testing.T, shotter *snapshot.SnapShotter) {
 	t.Helper()
 	path := shotter.Path()
 
 	if err := os.RemoveAll(path); err != nil {
-		t.Fatalf("could noot delete snapshot: %v", err)
+		t.Fatalf("could not delete snapshot: %v", err)
 	}
 }
