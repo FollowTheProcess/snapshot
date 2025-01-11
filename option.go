@@ -27,3 +27,12 @@ func Clean(clean bool) Option {
 		s.clean = clean
 	}
 }
+
+// Color is an [Option] that tells snapshot whether or not it can use color to render the diffs.
+//
+// By default diffs are colorised as one would expect, with removals in red and additions in green.
+func Color(v bool) Option {
+	return func(s *SnapShotter) {
+		s.color = v
+	}
+}
