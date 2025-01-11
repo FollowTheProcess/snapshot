@@ -17,13 +17,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/FollowTheProcess/snapshot/internal/colour"
 	"github.com/FollowTheProcess/snapshot/internal/diff"
+	"github.com/fatih/color"
 )
 
 const (
 	defaultFilePermissions = 0o644 // Default permissions for writing files, same as unix touch
 	defaultDirPermissions  = 0o755 // Default permissions for creating directories, same as unix mkdir
+)
+
+var (
+	red    = color.New(color.FgRed)
+	header = color.New(color.FgCyan, color.Bold)
+	green  = color.New(color.FgGreen)
 )
 
 // TODO(@FollowTheProcess): A storage backend interface, one for files (real) and one for in memory (testing), also opens up
@@ -35,18 +41,26 @@ type SnapShotter struct {
 	tb     testing.TB // The testing TB
 	update bool       // Whether to update the snapshots automatically
 	clean  bool       // Erase snapshots prior to the run
+	color  bool       // Whether to use color
 }
 
 // New builds and returns a new [SnapShotter], applying configuration
 // via functional options.
 func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // This actually isn't a helper
 	shotter := &SnapShotter{
-		tb: tb,
+		tb:    tb,
+		color: true,
 	}
 
 	for _, option := range options {
 		option(shotter)
 	}
+
+	// color by default will look at whether stdout is a tty and the value of the
+	// $NO_COLOR env var, we need to override this because go test buffers output
+	// so it will appear as if it's not a tty, even though the end result is to show
+	// the output in a terminal. It still respects the value of $NO_COLOR.
+	color.NoColor = !shotter.color || os.Getenv("NO_COLOR") != ""
 
 	return shotter
 }
@@ -188,15 +202,15 @@ func prettyDiff(diff string) string {
 	for i := 0; i < len(lines); i++ {
 		trimmed := strings.TrimSpace(lines[i])
 		if strings.HasPrefix(trimmed, "---") || strings.HasPrefix(trimmed, "- ") {
-			lines[i] = colour.Red(lines[i])
+			lines[i] = red.Sprint(lines[i])
 		}
 
 		if strings.HasPrefix(trimmed, "@@") {
-			lines[i] = colour.Header(lines[i])
+			lines[i] = header.Sprint(lines[i])
 		}
 
 		if strings.HasPrefix(trimmed, "+++") || strings.HasPrefix(trimmed, "+ ") {
-			lines[i] = colour.Green(lines[i])
+			lines[i] = green.Sprint(lines[i])
 		}
 	}
 
