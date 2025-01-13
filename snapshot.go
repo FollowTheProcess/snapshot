@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/FollowTheProcess/hue"
 	"github.com/FollowTheProcess/snapshot/internal/diff"
-	"github.com/fatih/color"
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 	defaultDirPermissions  = 0o755 // Default permissions for creating directories, same as unix mkdir
 )
 
-var (
-	red    = color.New(color.FgRed)
-	header = color.New(color.FgCyan, color.Bold)
-	green  = color.New(color.FgGreen)
+const (
+	red    = hue.Red
+	header = hue.Cyan | hue.Bold
+	green  = hue.Green
 )
 
 // TODO(@FollowTheProcess): A storage backend interface, one for files (real) and one for in memory (testing), also opens up
@@ -41,26 +41,18 @@ type SnapShotter struct {
 	tb     testing.TB // The testing TB
 	update bool       // Whether to update the snapshots automatically
 	clean  bool       // Erase snapshots prior to the run
-	color  bool       // Whether to use color
 }
 
 // New builds and returns a new [SnapShotter], applying configuration
 // via functional options.
 func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // This actually isn't a helper
 	shotter := &SnapShotter{
-		tb:    tb,
-		color: true,
+		tb: tb,
 	}
 
 	for _, option := range options {
 		option(shotter)
 	}
-
-	// color by default will look at whether stdout is a tty and the value of the
-	// $NO_COLOR env var, we need to override this because go test buffers output
-	// so it will appear as if it's not a tty, even though the end result is to show
-	// the output in a terminal. It still respects the value of $NO_COLOR.
-	color.NoColor = !shotter.color || os.Getenv("NO_COLOR") != ""
 
 	return shotter
 }

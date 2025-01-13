@@ -1,5 +1,7 @@
 package snapshot
 
+import "github.com/FollowTheProcess/hue"
+
 // Option is a functional option for configuring snapshot tests.
 type Option func(*SnapShotter)
 
@@ -33,6 +35,8 @@ func Clean(clean bool) Option {
 // By default diffs are colorised as one would expect, with removals in red and additions in green.
 func Color(v bool) Option {
 	return func(s *SnapShotter) {
-		s.color = v
+		if !v {
+			hue.Disable()
+		}
 	}
 }
