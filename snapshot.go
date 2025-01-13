@@ -41,23 +41,17 @@ type SnapShotter struct {
 	tb     testing.TB // The testing TB
 	update bool       // Whether to update the snapshots automatically
 	clean  bool       // Erase snapshots prior to the run
-	color  bool       // Whether to use color
 }
 
 // New builds and returns a new [SnapShotter], applying configuration
 // via functional options.
 func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // This actually isn't a helper
 	shotter := &SnapShotter{
-		tb:    tb,
-		color: true,
+		tb: tb,
 	}
 
 	for _, option := range options {
 		option(shotter)
-	}
-
-	if !shotter.color {
-		hue.Disable()
 	}
 
 	return shotter
