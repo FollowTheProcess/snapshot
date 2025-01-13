@@ -35,8 +35,10 @@ func Clean(clean bool) Option {
 // By default diffs are colorised as one would expect, with removals in red and additions in green.
 func Color(v bool) Option {
 	return func(s *SnapShotter) {
+		// If color is explicitly set to false we want to honour it, otherwise
+		// rely on hue's autodetection, which also respects $NO_COLOR
 		if !v {
-			hue.Disable()
+			hue.Enabled(v)
 		}
 	}
 }
