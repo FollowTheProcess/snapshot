@@ -27,7 +27,7 @@ type TB struct {
 	failed bool
 }
 
-func (t *TB) Helper() {}
+func (*TB) Helper() {}
 
 func (t *TB) Name() string {
 	return t.name
@@ -53,14 +53,14 @@ type person struct {
 }
 
 // Implement Snap for person.
-func (p person) Snap() ([]byte, error) {
+func (person) Snap() ([]byte, error) {
 	return []byte("custom snap yeah!\n"), nil
 }
 
 type explosion struct{}
 
 // Implement Snap for explosion.
-func (e explosion) Snap() ([]byte, error) {
+func (explosion) Snap() ([]byte, error) {
 	return nil, errors.New("bang")
 }
 
@@ -70,35 +70,35 @@ type nosnap struct{}
 // textMarshaler is a struct that implements encoding.TextMarshaler.
 type textMarshaler struct{}
 
-func (t textMarshaler) MarshalText() (text []byte, err error) {
+func (textMarshaler) MarshalText() (text []byte, err error) {
 	return []byte("MarshalText() called\n"), nil
 }
 
 // errMarshaler is a struct that implements encoding.TextMarshaler, but always returns an error.
 type errMarshaler struct{}
 
-func (t errMarshaler) MarshalText() (text []byte, err error) {
+func (errMarshaler) MarshalText() (text []byte, err error) {
 	return nil, errors.New("MarshalText error")
 }
 
 // stringer is a struct that implements fmt.Stringer.
 type stringer struct{}
 
-func (s stringer) String() string {
+func (stringer) String() string {
 	return "String() called\n"
 }
 
 // jsonMarshaler is a struct that implements json.Marshaler.
 type jsonMarshaler struct{}
 
-func (j jsonMarshaler) MarshalJSON() ([]byte, error) {
+func (jsonMarshaler) MarshalJSON() ([]byte, error) {
 	return []byte(`{"key": "value"}`), nil
 }
 
 // errJSONMarshaler is a struct that implements json.Marshaler, but always returns an error.
 type errJSONMarshaler struct{}
 
-func (e errJSONMarshaler) MarshalJSON() ([]byte, error) {
+func (errJSONMarshaler) MarshalJSON() ([]byte, error) {
 	return nil, errors.New("MarshalJSON error")
 }
 
@@ -238,6 +238,7 @@ func TestUpdate(t *testing.T) {
 	snap := snapshot.New(t, snapshot.Update(true))
 
 	now := time.Now()
+
 	snap.Snap(value)
 
 	info, err := os.Stat(snap.Path())
@@ -280,6 +281,7 @@ func makeSnapshot(t *testing.T, shotter *snapshot.SnapShotter, content string) {
 
 func deleteSnapshot(t *testing.T, shotter *snapshot.SnapShotter) {
 	t.Helper()
+
 	path := shotter.Path()
 
 	if err := os.RemoveAll(path); err != nil {

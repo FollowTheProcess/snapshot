@@ -79,6 +79,7 @@ func (s *SnapShotter) Snap(value any) {
 	if s.clean {
 		if err := os.RemoveAll(dir); err != nil {
 			s.tb.Fatalf("failed to delete %s: %v", dir, err)
+
 			return
 		}
 	}
@@ -90,23 +91,29 @@ func (s *SnapShotter) Snap(value any) {
 		content, err := val.Snap()
 		if err != nil {
 			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
+
 			return
 		}
+
 		current.Write(content)
 	case json.Marshaler:
 		// Use MarshalIndent for better readability
 		content, err := json.MarshalIndent(val, "", "  ")
 		if err != nil {
 			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
+
 			return
 		}
+
 		current.Write(content)
 	case encoding.TextMarshaler:
 		content, err := val.MarshalText()
 		if err != nil {
 			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
+
 			return
 		}
+
 		current.Write(content)
 	case fmt.Stringer:
 		current.WriteString(val.String())
@@ -135,6 +142,7 @@ func (s *SnapShotter) Snap(value any) {
 		if s.update {
 			s.tb.Logf("Snap: updating snapshot %s", path)
 		}
+
 		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
 			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
 		}
@@ -163,7 +171,7 @@ func (s *SnapShotter) Path() string {
 
 	// Name of the file generated from t.Name(), so for subtests and table driven tests
 	// this will be of the form TestSomething/subtest1 for example
-	file := fmt.Sprintf("%s.snap.txt", s.tb.Name())
+	file := s.tb.Name() + ".snap.txt"
 
 	// Join up the base with the generate filepath
 	path := filepath.Join(base, file)
@@ -178,6 +186,7 @@ func fileExists(path string) (bool, error) {
 		if errors.Is(err, fs.ErrNotExist) {
 			return false, nil
 		}
+
 		return false, fmt.Errorf("could not determine existence of %s: %w", path, err)
 	}
 
