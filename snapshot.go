@@ -132,6 +132,8 @@ func (s *SnapShotter) Snap(value any) {
 		s.tb.Fatalf("Snap: %v", err)
 	}
 
+	currentBytes := bytes.ReplaceAll(current.Bytes(), []byte("\r\n"), []byte("\n"))
+
 	if !exists || s.update {
 		// No previous snapshot, save the current one, potentially creating the
 		// directory structure for the first time, then pass the test by returning early
@@ -143,7 +145,7 @@ func (s *SnapShotter) Snap(value any) {
 			s.tb.Logf("Snap: updating snapshot %s", path)
 		}
 
-		if err = os.WriteFile(path, current.Bytes(), defaultFilePermissions); err != nil {
+		if err = os.WriteFile(path, currentBytes, defaultFilePermissions); err != nil {
 			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
 		}
 		// We're done
@@ -159,7 +161,7 @@ func (s *SnapShotter) Snap(value any) {
 	// Normalise CRLF to LF everywhere
 	previous = bytes.ReplaceAll(previous, []byte("\r\n"), []byte("\n"))
 
-	if diff := diff.Diff("previous", previous, "current", current.Bytes()); diff != nil {
+	if diff := diff.Diff("previous", previous, "current", currentBytes); diff != nil {
 		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
 }
