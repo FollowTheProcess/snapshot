@@ -75,11 +75,12 @@ func (s *SnapShotter) Snap(value any) {
 	// and use that in the call to MkDirAll
 	dir := filepath.Dir(path)
 
-	// If clean is set, erase the snapshot directory and then carry on
+	// If clean is set, erase the entire snapshot directory then carry on,
+	// re-populating it with the fresh snaps
 	if s.clean {
-		if err := os.RemoveAll(dir); err != nil {
-			s.tb.Fatalf("failed to delete %s: %v", dir, err)
-
+		toRemove := filepath.Join("testdata", "snapshots")
+		if err := os.RemoveAll(toRemove); err != nil {
+			s.tb.Fatalf("failed to delete %s: %v", toRemove, err)
 			return
 		}
 	}
@@ -91,7 +92,6 @@ func (s *SnapShotter) Snap(value any) {
 		content, err := val.Snap()
 		if err != nil {
 			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
-
 			return
 		}
 
@@ -101,7 +101,6 @@ func (s *SnapShotter) Snap(value any) {
 		content, err := json.MarshalIndent(val, "", "  ")
 		if err != nil {
 			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
-
 			return
 		}
 
@@ -110,7 +109,6 @@ func (s *SnapShotter) Snap(value any) {
 		content, err := val.MarshalText()
 		if err != nil {
 			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
-
 			return
 		}
 
