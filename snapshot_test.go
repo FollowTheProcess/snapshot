@@ -201,7 +201,7 @@ func TestSnap(t *testing.T) {
 				t.Fatalf("%s initial failed state should be false", t.Name())
 			}
 
-			shotter := snapshot.New(tb)
+			shotter := snapshot.New(tb, snapshot.Color(true))
 
 			if tt.clean {
 				deleteSnapshot(t, shotter)
@@ -220,6 +220,76 @@ func TestSnap(t *testing.T) {
 			// - If we arranged to have a previous snap artificially created (existingSnap: "<something>")
 			//    this is how we test that the library can recognise mismatching content between snapshots
 			shotter.Snap(tt.value)
+
+			if tb.failed != tt.wantFail {
+				t.Fatalf(
+					"tb.failed =\t%v\ntt.wantFail =\t%v\noutput =\t%s\n",
+					tb.failed,
+					tt.wantFail,
+					buf.String(),
+				)
+			}
+		})
+	}
+}
+
+func TestFilters(t *testing.T) {
+	tests := []struct {
+		name        string // Name of the test case
+		value       string // Thing to snap
+		pattern     string // Regex to replace
+		replacement string // Replacement
+		wantFail    bool   // Whether we want the test to fail
+	}{
+		{
+			name:        "no filters",
+			value:       `{"id": "5c62efe3-36e4-41f7-aa3b-c871f659ea31", "name": "Bob"}`,
+			pattern:     "",
+			replacement: "",
+			wantFail:    false,
+		},
+		{
+			name:        "uuid filter",
+			value:       `{"id": "c2160f4a-9bf4-400a-829f-d42c060ebbb8", "name": "John"}`,
+			pattern:     "(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+			replacement: "[UUID]",
+			wantFail:    false,
+		},
+		{
+			name:        "windows path",
+			value:       `some\windows\path.txt`,
+			pattern:     `\\([\w\d]|\.)`,
+			replacement: "/$1",
+			wantFail:    false,
+		},
+		{
+			name:        "macos temp",
+			value:       `/var/folders/y_/1g9jx9bd5fg9_5134n1dtq1c0000gn/T/tmp.Y2CkGLik3Q`,
+			pattern:     `/var/folders/\S+?/T/\S+`,
+			replacement: "[TEMP_FILE]",
+			wantFail:    false,
+		},
+		{
+			name:        "bad pattern",
+			value:       "doesn't matter",
+			pattern:     `(?[\p{Thai}&\p{Digit}])`,
+			replacement: "",
+			wantFail:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			tb := &TB{out: buf, name: t.Name()}
+
+			if tb.failed {
+				t.Fatalf("%s initial failed state should be false", t.Name())
+			}
+
+			snap := snapshot.New(tb, snapshot.Filter(tt.pattern, tt.replacement))
+
+			snap.Snap(tt.value)
 
 			if tb.failed != tt.wantFail {
 				t.Fatalf(
