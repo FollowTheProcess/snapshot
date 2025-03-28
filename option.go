@@ -1,13 +1,14 @@
 package snapshot
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/FollowTheProcess/hue"
 )
 
 // Option is a functional option for configuring snapshot tests.
-type Option func(*SnapShotter)
+type Option func(*SnapShotter) error
 
 // Update is an [Option] that tells snapshot whether to automatically update the stored snapshots
 // with the new value from each test.
@@ -16,8 +17,9 @@ type Option func(*SnapShotter)
 // test flag so that you can inspect the diffs prior to deciding that the changes are
 // expected, and therefore the snapshots should be updated.
 func Update(update bool) Option {
-	return func(s *SnapShotter) {
+	return func(s *SnapShotter) error {
 		s.update = update
+		return nil
 	}
 }
 
@@ -29,8 +31,9 @@ func Update(update bool) Option {
 // test flag so that it only happens when explicitly requested, as like [Update], fresh snapshots
 // will always pass the tests.
 func Clean(clean bool) Option {
-	return func(s *SnapShotter) {
+	return func(s *SnapShotter) error {
 		s.clean = clean
+		return nil
 	}
 }
 
@@ -38,12 +41,9 @@ func Clean(clean bool) Option {
 //
 // By default diffs are colorised as one would expect, with removals in red and additions in green.
 func Color(v bool) Option {
-	return func(_ *SnapShotter) {
-		// If color is explicitly set to false we want to honour it, otherwise
-		// rely on hue's autodetection, which also respects $NO_COLOR
-		if !v {
-			hue.Enabled(v)
-		}
+	return func(s *SnapShotter) error {
+		hue.Enabled(v)
+		return nil
 	}
 }
 
@@ -77,14 +77,13 @@ func Color(v bool) Option {
 // Filters use [regexp.ReplaceAll] underneath so in general the behaviour is as documented there,
 // see also [regexp.Expand] for documentation on how '$' may be used.
 func Filter(pattern, replacement string) Option {
-	return func(s *SnapShotter) {
+	return func(s *SnapShotter) error {
 		re, err := regexp.Compile(pattern)
 		if err != nil {
-			// TODO(@FollowTheProcess): Make Option return an error
-			// and fail the test using tb.Fatal in snapshot.New if it does
-			panic(err)
+			return fmt.Errorf("could not compile filter regex: %w", err)
 		}
 
 		s.filters = append(s.filters, filter{pattern: re, replacement: replacement})
+		return nil
 	}
 }

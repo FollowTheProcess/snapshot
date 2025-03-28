@@ -50,7 +50,9 @@ func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // T
 	}
 
 	for _, option := range options {
-		option(shotter)
+		if err := option(shotter); err != nil {
+			tb.Fatalf("snapshot.New(): %v", err)
+		}
 	}
 
 	return shotter
