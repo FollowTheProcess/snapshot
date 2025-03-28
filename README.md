@@ -1,8 +1,8 @@
+# Snapshot
+
 <p align="center">
 <img src="https://github.com/FollowTheProcess/snapshot/raw/main/img/logo.jpg" alt="logo" width=75%>
 </p>
-
-# Snapshot
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
 [![Go Reference](https://pkg.go.dev/badge/github.com/FollowTheProcess/snapshot.svg)](https://pkg.go.dev/github.com/FollowTheProcess/snapshot)
@@ -26,6 +26,7 @@ Simple, intuitive snapshot testing with Go 📸
     - [🗑️ Tidying Up](#️-tidying-up)
     - [🤓 Follows Go Conventions](#-follows-go-conventions)
   - [Serialisation Rules](#serialisation-rules)
+  - [Filters](#filters)
     - [Credits](#credits)
 
 ## Project Description
@@ -70,7 +71,7 @@ func TestSnapshot(t *testing.T) {
 
     snap.Snap([]string{"hello", "there", "this", "is", "a", "snapshot"})
 
-    // This will store the above slice in testdata/snapshots/TestSnapShot.snap.txt
+    // This will store the above slice in testdata/snapshots/TestSnapshot.snap.txt
     // then all future checks will compare against this snapshot
 }
 ```
@@ -86,6 +87,7 @@ Not very helpful if you want your snapshots to be as readable as possible!
 With `snapshot`, you have full control over how your type is serialised to the snapshot file (if you need it). You can either:
 
 - Let `snapshot` take a best guess at how to serialise your type
+  - With or without "filters" to tweak the result, see [Filters](#filters) below for more info
 - Implement one of `snapshot.Snapper`, [json.Marshaler], [encoding.TextMarshaler], or [fmt.Stringer] to override how it's serialised
 
 See [Serialisation Rules](#serialisation-rules) 👇🏻 for more info on how `snapshot` decides how to snap your value
@@ -180,6 +182,36 @@ Because of this, it needs to know how to serialise your value (which could be ba
 
 > [!TIP]
 > `snapshot` effectively goes through this list top to bottom to discover how to serialise your type, so mechanisms at the top are preferentially chosen over mechanisms lower down. If your snapshot doesn't look quite right, consider implementing a method higher up the list to get the behaviour you need
+
+## Filters
+
+Sometimes, your snapshots might contain data that is randomly generated like UUIDs, or constantly changing like timestamps, or that might change on different platforms like filepaths, temp directory names etc.
+
+These things make snapshot testing annoying because your snapshot changes every time or passes locally but fails in CI on a windows GitHub Actions runner (my personal bane!). `snapshot` lets you add "filters" to your configuration to solve this.
+
+Filters are simply regex replacements that you specify ahead of time, and if any of them appear in your snapshot, they can be replaced by whatever you want!
+
+For example:
+
+```go
+func TestWithFilters(t *testing.T) {
+  // Some common ones to give you inspiration
+  snap := snapshot.New(
+    t,
+    snapshot.Filter("(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "[UUID]"), // Replace uuids with the literal string "[UUID]"
+    snapshot.Filter(`\\([\w\d]|\.)`, "/$1"), // Replace windows file paths with unix equivalents
+    snapshot.Filter(`/var/folders/\S+?/T/\S+`, "[TEMP_DIR]"), // Replace a macos temp dir with the literal string "[TEMP_DIR]"
+  )
+}
+```
+
+But you can imagine more:
+
+- Unix timestamps
+- Go `time.Duration` values
+- Other types of uuids, ulids etc.
+
+If you can find a regex for it, you can filter it out!
 
 ### Credits
 
