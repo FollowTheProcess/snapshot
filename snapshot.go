@@ -14,6 +14,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -32,15 +33,13 @@ const (
 	green  = hue.Green
 )
 
-// TODO(@FollowTheProcess): A storage backend interface, one for files (real) and one for in memory (testing), also opens up
-// for others to be implemented
-
 // SnapShotter holds configuration and state and is responsible for performing
 // the tests and managing the snapshots.
 type SnapShotter struct {
-	tb     testing.TB // The testing TB
-	update bool       // Whether to update the snapshots automatically
-	clean  bool       // Erase snapshots prior to the run
+	tb      testing.TB
+	filters []filter
+	update  bool
+	clean   bool
 }
 
 // New builds and returns a new [SnapShotter], applying configuration
@@ -51,7 +50,9 @@ func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // T
 	}
 
 	for _, option := range options {
-		option(shotter)
+		if err := option(shotter); err != nil {
+			tb.Fatalf("snapshot.New(): %v", err)
+		}
 	}
 
 	return shotter
@@ -85,52 +86,14 @@ func (s *SnapShotter) Snap(value any) {
 		}
 	}
 
-	current := &bytes.Buffer{}
-
-	switch val := value.(type) {
-	case Snapper:
-		content, err := val.Snap()
-		if err != nil {
-			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
-			return
-		}
-
-		current.Write(content)
-	case json.Marshaler:
-		// Use MarshalIndent for better readability
-		content, err := json.MarshalIndent(val, "", "  ")
-		if err != nil {
-			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
-			return
-		}
-
-		current.Write(content)
-	case encoding.TextMarshaler:
-		content, err := val.MarshalText()
-		if err != nil {
-			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
-			return
-		}
-
-		current.Write(content)
-	case fmt.Stringer:
-		current.WriteString(val.String())
-	case string, []byte, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
-		// For any primitive type just use %v
-		fmt.Fprintf(current, "%v", val)
-	default:
-		// Fallback, use %#v as a best effort at generic printing
-		s.tb.Logf("Snap: falling back to GoString for %T, consider creating a new type and implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer", val)
-		fmt.Fprintf(current, "%#v", val)
-	}
-
 	// Check if one exists already
 	exists, err := fileExists(path)
 	if err != nil {
 		s.tb.Fatalf("Snap: %v", err)
 	}
 
-	currentBytes := bytes.ReplaceAll(current.Bytes(), []byte("\r\n"), []byte("\n"))
+	// Do the actual snapshotting
+	content := s.do(value)
 
 	if !exists || s.update {
 		// No previous snapshot, save the current one, potentially creating the
@@ -143,7 +106,7 @@ func (s *SnapShotter) Snap(value any) {
 			s.tb.Logf("Snap: updating snapshot %s", path)
 		}
 
-		if err = os.WriteFile(path, currentBytes, defaultFilePermissions); err != nil {
+		if err = os.WriteFile(path, content, defaultFilePermissions); err != nil {
 			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
 		}
 		// We're done
@@ -159,9 +122,60 @@ func (s *SnapShotter) Snap(value any) {
 	// Normalise CRLF to LF everywhere
 	previous = bytes.ReplaceAll(previous, []byte("\r\n"), []byte("\n"))
 
-	if diff := diff.Diff("previous", previous, "current", currentBytes); diff != nil {
+	if diff := diff.Diff("previous", previous, "current", content); diff != nil {
 		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
+}
+
+// do actually does the snapshotting, returning the raw bytes of what was captured.
+func (s *SnapShotter) do(value any) []byte {
+	buf := &bytes.Buffer{}
+
+	switch val := value.(type) {
+	case Snapper:
+		content, err := val.Snap()
+		if err != nil {
+			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
+			return nil
+		}
+
+		buf.Write(content)
+	case json.Marshaler:
+		// Use MarshalIndent for better readability
+		content, err := json.MarshalIndent(val, "", "  ")
+		if err != nil {
+			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
+			return nil
+		}
+
+		buf.Write(content)
+	case encoding.TextMarshaler:
+		content, err := val.MarshalText()
+		if err != nil {
+			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
+			return nil
+		}
+
+		buf.Write(content)
+	case fmt.Stringer:
+		buf.WriteString(val.String())
+	case string, []byte, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
+		// For any primitive type just use %v
+		fmt.Fprintf(buf, "%v", val)
+	default:
+		// Fallback, use %#v as a best effort at generic printing
+		s.tb.Logf("Snap: falling back to GoString for %T, consider creating a new type and implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer", val)
+		fmt.Fprintf(buf, "%#v", val)
+	}
+
+	// Normalise line endings and apply any installed filters
+	content := bytes.ReplaceAll(buf.Bytes(), []byte("\r\n"), []byte("\n"))
+
+	for _, filter := range s.filters {
+		content = filter.pattern.ReplaceAll(content, []byte(filter.replacement))
+	}
+
+	return content
 }
 
 // Path returns the path that a snapshot would be saved at for any given test.
@@ -216,4 +230,19 @@ func prettyDiff(diff string) string {
 	}
 
 	return strings.Join(lines, "\n")
+}
+
+// A filter is a mechanism for normalising non-deterministic snapshot contents such
+// as windows/unix filepaths, uuids, timestamps etc.
+//
+// It contains a pattern which must be a valid regex, and a replacement string to substitute
+// in the snapshot.
+type filter struct {
+	// pattern is the regex to search for in the snapshot
+	// e.g. (?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} for a UUID v4
+	pattern *regexp.Regexp
+
+	// replacement is the deterministic replacement string to substitute any instance of pattern with.
+	// e.g. [UUID]
+	replacement string
 }
