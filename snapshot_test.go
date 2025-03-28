@@ -201,7 +201,7 @@ func TestSnap(t *testing.T) {
 				t.Fatalf("%s initial failed state should be false", t.Name())
 			}
 
-			shotter := snapshot.New(tb)
+			shotter := snapshot.New(tb, snapshot.Color(true))
 
 			if tt.clean {
 				deleteSnapshot(t, shotter)
@@ -268,6 +268,13 @@ func TestFilters(t *testing.T) {
 			pattern:     `/var/folders/\S+?/T/\S+`,
 			replacement: "[TEMP_FILE]",
 			wantFail:    false,
+		},
+		{
+			name:        "bad pattern",
+			value:       "doesn't matter",
+			pattern:     `(?[\p{Thai}&\p{Digit}])`,
+			replacement: "",
+			wantFail:    true,
 		},
 	}
 
