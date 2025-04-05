@@ -214,7 +214,7 @@ func fileExists(path string) (bool, error) {
 // prettyDiff takes a string diff in unified diff format and colourises it for easier viewing.
 func prettyDiff(diff string) string {
 	lines := strings.Split(diff, "\n")
-	for i := 0; i < len(lines); i++ {
+	for i := range lines {
 		trimmed := strings.TrimSpace(lines[i])
 		if strings.HasPrefix(trimmed, "---") || strings.HasPrefix(trimmed, "- ") {
 			lines[i] = red.Sprint(lines[i])
