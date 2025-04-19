@@ -127,6 +127,21 @@ func (s *SnapShotter) Snap(value any) {
 	}
 }
 
+// Path returns the path that a snapshot would be saved at for any given test.
+func (s *SnapShotter) Path() string {
+	// Base directory under testdata where all snapshots are kept
+	base := filepath.Join("testdata", "snapshots")
+
+	// Name of the file generated from t.Name(), so for subtests and table driven tests
+	// this will be of the form TestSomething/subtest1 for example
+	file := s.tb.Name() + ".snap.txt"
+
+	// Join up the base with the generate filepath
+	path := filepath.Join(base, file)
+
+	return path
+}
+
 // do actually does the snapshotting, returning the raw bytes of what was captured.
 func (s *SnapShotter) do(value any) []byte {
 	buf := &bytes.Buffer{}
@@ -176,21 +191,6 @@ func (s *SnapShotter) do(value any) []byte {
 	}
 
 	return content
-}
-
-// Path returns the path that a snapshot would be saved at for any given test.
-func (s *SnapShotter) Path() string {
-	// Base directory under testdata where all snapshots are kept
-	base := filepath.Join("testdata", "snapshots")
-
-	// Name of the file generated from t.Name(), so for subtests and table driven tests
-	// this will be of the form TestSomething/subtest1 for example
-	file := s.tb.Name() + ".snap.txt"
-
-	// Join up the base with the generate filepath
-	path := filepath.Join(base, file)
-
-	return path
 }
 
 // fileExists returns whether a path exists and is a file.
