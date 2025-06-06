@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/FollowTheProcess/hue v0.5.2
-	golang.org/x/tools v0.33.0
+	golang.org/x/tools v0.34.0
 )
 
 require (
