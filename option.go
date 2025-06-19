@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/FollowTheProcess/hue"
+	"go.followtheprocess.codes/hue"
 )
 
 // Option is a functional option for configuring snapshot tests.

@@ -5,7 +5,7 @@
 </p>
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
-[![Go Reference](https://pkg.go.dev/badge/github.com/FollowTheProcess/snapshot.svg)](https://pkg.go.dev/github.com/FollowTheProcess/snapshot)
+[![Go Reference](https://pkg.go.dev/badge/go.followtheprocess.codes/snapshot.svg)](https://pkg.go.dev/go.followtheprocess.codes/snapshot)
 [![Go Report Card](https://goreportcard.com/badge/github.com/FollowTheProcess/snapshot)](https://goreportcard.com/report/github.com/FollowTheProcess/snapshot)
 [![GitHub](https://img.shields.io/github/v/release/FollowTheProcess/snapshot?logo=github&sort=semver)](https://github.com/FollowTheProcess/snapshot)
 [![CI](https://github.com/FollowTheProcess/snapshot/workflows/CI/badge.svg)](https://github.com/FollowTheProcess/snapshot/actions?query=workflow%3ACI)
@@ -54,7 +54,7 @@ Think of snapshot testing as an automated, configurable, and simple way of manag
 ## Installation
 
 ```shell
-go get github.com/FollowTheProcess/snapshot@latest
+go get go.followtheprocess.codes/snapshot@latest
 ```
 
 ## Quickstart
@@ -63,7 +63,7 @@ go get github.com/FollowTheProcess/snapshot@latest
 import (
     "testing"
 
-    "github.com/FollowTheProcess/snapshot"
+    "go.followtheprocess.codes/snapshot"
 )
 
 func TestSnapshot(t *testing.T) {
@@ -103,7 +103,7 @@ Let's say you've got a bunch of snapshots saved already, and you change your imp
 import (
   "testing"
 
-  "github.com/FollowTheProcess/snapshot"
+  "go.followtheprocess.codes/snapshot"
 )
 
 var update = flag.Bool("update", false, "Update snapshots automatically")
@@ -131,7 +131,7 @@ One criticism of snapshot testing is that if you restructure or rename your test
 import (
   "testing"
 
-  "github.com/FollowTheProcess/snapshot"
+  "go.followtheprocess.codes/snapshot"
 )
 
 var clean = flag.Bool("clean", false, "Clean up unused snapshots")
