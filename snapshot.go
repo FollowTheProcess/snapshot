@@ -3,7 +3,7 @@
 //
 // Snapshots are stored under testdata, organised by test case name and may be updated automatically
 // by passing configuration in this package.
-package snapshot
+package snapshot // import "go.followtheprocess.codes/snapshot"
 
 import (
 	"bytes"
@@ -18,8 +18,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/FollowTheProcess/snapshot/internal/diff"
 	"go.followtheprocess.codes/hue"
+	"go.followtheprocess.codes/snapshot/internal/diff"
 )
 
 const (

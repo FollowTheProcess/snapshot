@@ -1,4 +1,4 @@
-module github.com/FollowTheProcess/snapshot
+module go.followtheprocess.codes/snapshot
 
 go 1.24
 
