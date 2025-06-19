@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/FollowTheProcess/snapshot"
+	"go.followtheprocess.codes/snapshot"
 )
 
 const (
