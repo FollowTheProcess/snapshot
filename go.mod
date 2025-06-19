@@ -3,7 +3,7 @@ module github.com/FollowTheProcess/snapshot
 go 1.24
 
 require (
-	github.com/FollowTheProcess/hue v0.5.2
+	github.com/FollowTheProcess/hue v0.6.0
 	golang.org/x/tools v0.34.0
 )
 
