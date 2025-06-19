@@ -18,8 +18,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/FollowTheProcess/hue"
 	"github.com/FollowTheProcess/snapshot/internal/diff"
+	"go.followtheprocess.codes/hue"
 )
 
 const (
