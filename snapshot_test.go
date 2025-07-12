@@ -22,6 +22,7 @@ const (
 // state whether or not it would have failed and what it would have written.
 type TB struct {
 	testing.TB
+
 	out    io.Writer
 	name   string
 	failed bool
