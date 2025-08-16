@@ -1,6 +1,6 @@
 module go.followtheprocess.codes/snapshot
 
-go 1.24.0
+go 1.24
 
 require (
 	go.followtheprocess.codes/hue v0.6.0
