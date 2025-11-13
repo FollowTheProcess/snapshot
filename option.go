@@ -84,6 +84,7 @@ func Filter(pattern, replacement string) Option {
 		}
 
 		s.filters = append(s.filters, filter{pattern: re, replacement: replacement})
+
 		return nil
 	}
 }
