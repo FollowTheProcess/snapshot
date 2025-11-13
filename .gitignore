@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,jetbrains+all,go
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,linux,visualstudiocode,jetbrains+all,go
+# Created by https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,goland+all,go
+# Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,linux,visualstudiocode,goland+all,go
 
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
@@ -17,22 +17,15 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-coverage.html
-
-# Taskfile
-.task
-
-# Comparative benchmarks
-before.txt
-after.txt
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
+# Go workspace files
 go.work
+go.work.sum
 
-### JetBrains+all ###
+### GoLand+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
@@ -111,7 +104,7 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
-### JetBrains+all Patch ###
+### GoLand+all Patch ###
 # Ignore everything but code style settings and run configurations
 # that are supposed to be shared within teams.
 
@@ -170,7 +163,7 @@ Temporary Items
 
 ### VisualStudioCode ###
 .vscode/*
-!.vscode/settings.json
+# !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
@@ -213,4 +206,12 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,jetbrains+all,go
+# End of https://www.toptal.com/developers/gitignore/api/macos,windows,linux,visualstudiocode,goland+all,go
+
+# Zed editor
+.zed/*
+# !.zed/settings.json
+!.zed/tasks.json
+
+# Taskfile
+.task/

@@ -11,7 +11,7 @@ formatters:
       extra-rules: true
 
     golines:
-      max-len: 140
+      max-len: 120
 
 linters:
   default: all
@@ -25,7 +25,6 @@ linters:
     - funlen # Bad metric for complexity
     - ginkgolinter # I don't use whatever this is
     - gochecknoglobals # Globals are fine sometimes, use common sense
-    - gocognit # Cmplexity with another name, don't need both
     - gocyclo # cyclop does this instead
     - godox # "todo" and "fixme" comments are allowed
     - goheader # No need
@@ -42,13 +41,11 @@ linters:
     - unparam # gopls is better and more subtle
     - varnamelen # Lots of false positives of things that are fine
     - wrapcheck # Not every error must be wrapped
-    - wsl # Very aggressive, some of this I like but tend to do anyway
-    - wsl_v5 # As above, just newer version
+    - wsl # Deprecated
 
   exclusions:
     presets:
       # See https://golangci-lint.run/usage/false-positives/#exclusion-presets
-      - comments # Revive in particular has lots of false positives
       - std-error-handling
       - common-false-positives
     rules:
@@ -56,7 +53,7 @@ linters:
         linters:
           - prealloc # These kinds of optimisations will make no difference to test code
           - gosec # Tests don't need security stuff
-
+          - goconst # Sometimes repetition is okay in tests
     paths:
       - internal/diff
 
@@ -158,11 +155,7 @@ linters:
           disabled: true # predeclared does this
 
         - name: unhandled-error
-          arguments:
-            - fmt\.(Fp|P)rint(ln|f)?
-            - strings.Builder.Write(String|Byte)?
-            - bytes.Buffer.Write(String|Byte)?
-            - go/printer.(Fp|P)rint(ln|f)?
+          disabled: true # errcheck handles this
 
         - name: flag-parameter
           disabled: true # As far as I can work out this just doesn't like bools
