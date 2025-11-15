@@ -1,0 +1,4 @@
+source: snapshot_test.go
+expression: tt.value
+---
+doesn't matter

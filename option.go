@@ -3,12 +3,10 @@ package snapshot
 import (
 	"fmt"
 	"regexp"
-
-	"go.followtheprocess.codes/hue"
 )
 
-// Option is a functional option for configuring snapshot tests.
-type Option func(*SnapShotter) error
+// Option is a functional option for configuring a snapshot test [Runner].
+type Option func(*Runner) error
 
 // Update is an [Option] that tells snapshot whether to automatically update the stored snapshots
 // with the new value from each test.
@@ -17,8 +15,8 @@ type Option func(*SnapShotter) error
 // test flag so that you can inspect the diffs prior to deciding that the changes are
 // expected, and therefore the snapshots should be updated.
 func Update(update bool) Option {
-	return func(s *SnapShotter) error {
-		s.update = update
+	return func(r *Runner) error {
+		r.update = update
 		return nil
 	}
 }
@@ -31,18 +29,33 @@ func Update(update bool) Option {
 // test flag so that it only happens when explicitly requested, as like [Update], fresh snapshots
 // will always pass the tests.
 func Clean(clean bool) Option {
-	return func(s *SnapShotter) error {
-		s.clean = clean
+	return func(r *Runner) error {
+		r.clean = clean
 		return nil
 	}
 }
 
-// Color is an [Option] that tells snapshot whether or not it can use color to render the diffs.
+// Description is an [Option] that attaches a brief, human-readable description that may
+// be serialised with the snapshot depending on the format.
+func Description(description string) Option {
+	return func(r *Runner) error {
+		r.description = description
+		return nil
+	}
+}
+
+// Color is an [Option] that tells snapshot whether it can use ANSI terminal colors
+// when rendering the diff.
 //
-// By default diffs are colorised as one would expect, with removals in red and additions in green.
-func Color(v bool) Option {
-	return func(s *SnapShotter) error {
-		hue.Enabled(v)
+// By default snapshot will auto-detect whether to use colour based on things like
+// $NO_COLOR, $FORCE_COLOR, whether [os.Stdout] is a terminal etc.
+//
+// Passing this option will override default detection and set the provided value.
+func Color(enabled bool) Option {
+	return func(r *Runner) error {
+		// noColor rather than color so that the default value is false
+		// which falls back to hue's autodetection
+		r.noColor = !enabled
 		return nil
 	}
 }
@@ -53,8 +66,7 @@ func Color(v bool) Option {
 // Filters can be used to ensure deterministic snapshots given non-deterministic data.
 //
 // A motivating example would be if your snapshot contained a UUID that was generated
-// each time, your snapshot would always fail. You could of course implement the [Snapper]
-// interface on your type but this is not always convenient.
+// each time, your snapshot would always fail.
 //
 // Instead you might add a filter:
 //
@@ -77,13 +89,13 @@ func Color(v bool) Option {
 // Filters use [regexp.ReplaceAll] underneath so in general the behaviour is as documented there,
 // see also [regexp.Expand] for documentation on how '$' may be used.
 func Filter(pattern, replacement string) Option {
-	return func(s *SnapShotter) error {
+	return func(r *Runner) error {
 		re, err := regexp.Compile(pattern)
 		if err != nil {
 			return fmt.Errorf("could not compile filter regex: %w", err)
 		}
 
-		s.filters = append(s.filters, filter{pattern: re, replacement: replacement})
+		r.filters = append(r.filters, filter{pattern: re, replacement: replacement})
 
 		return nil
 	}

@@ -1,0 +1,9 @@
+source: insta_test.go
+---
+name: Obi Wan Kenobi
+friends:
+  - Yoda
+  - Qui Gon Jin
+  - Mace Windu
+age: 34
+employed: true

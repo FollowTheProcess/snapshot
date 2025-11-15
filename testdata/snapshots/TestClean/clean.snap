@@ -1,0 +1,6 @@
+source: snapshot_test.go
+expression: value
+---
+hello: snapshot
+more: okay
+words: here
