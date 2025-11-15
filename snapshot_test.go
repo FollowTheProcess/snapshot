@@ -74,7 +74,6 @@ func TestSnap(t *testing.T) {
 				tb,
 				snapshot.Description(tt.description),
 				snapshot.Color(os.Getenv("CI") == ""),
-				snapshot.WithFormat(snapshot.FormatInsta),
 			)
 
 			if tt.clean {
@@ -265,16 +264,19 @@ func TestClean(t *testing.T) {
 	})
 }
 
-func TestFormat(t *testing.T) {
-	buf := &bytes.Buffer{}
-	tb := &TB{out: buf, name: t.Name()}
+type customFormatter struct{}
 
-	test.False(t, tb.failed, test.Context("initial failed state should be false"))
+// Implement formatter.
+func (c customFormatter) Format(value any) ([]byte, error) {
+	// Just cheat and return a constant value
+	return []byte("CONSTANT"), nil
+}
 
-	// Invalid format
-	_ = snapshot.New(tb, snapshot.WithFormat("nonsense"))
+func TestFormatter(t *testing.T) {
+	custom := customFormatter{}
+	snap := snapshot.New(t, snapshot.WithFormatter(custom))
 
-	test.True(t, tb.failed)
+	snap.Snap("hello")
 }
 
 // TB is a fake implementation of [testing.TB] that simply records in internal

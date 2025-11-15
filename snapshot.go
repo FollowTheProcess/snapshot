@@ -55,7 +55,7 @@ const (
 type Runner struct {
 	tb          testing.TB
 	description string
-	format      Format
+	formatter   Formatter
 	filters     []filter
 	update      bool
 	clean       bool
@@ -70,8 +70,7 @@ func New(tb testing.TB, options ...Option) Runner {
 	tb.Helper()
 
 	runner := Runner{
-		tb:     tb,
-		format: FormatInsta,
+		tb: tb,
 	}
 
 	for _, option := range options {
@@ -121,11 +120,15 @@ func (r Runner) Snap(value any) {
 	}
 
 	// Do the actual snapshotting
-	// TODO(@FollowTheProcess): When we have more formats, this can go here. The mechanism
-	// is provided for extensibility in the future.
-	formatter := insta.NewFormatter(r.description)
+	if r.formatter == nil {
+		// Default to the insta formatter
+		//
+		//nolint:revive // Suspicious value receiver modified but actually this is fine
+		// as all we care about is this one function call
+		r.formatter = insta.NewFormatter(r.description)
+	}
 
-	content, err := formatter.Format(value)
+	content, err := r.formatter.Format(value)
 	if err != nil {
 		r.tb.Fatalf("Snap: %v\n", err)
 	}

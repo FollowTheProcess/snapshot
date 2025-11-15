@@ -1,6 +1,4 @@
-// Package format provides the [Formatter] interface enabling snapshot to capture, serialise
-// and deserialise snapshots in different formats.
-package format
+package snapshot
 
 // Formatter is a format for serialising and deserialising snapshots.
 type Formatter interface {

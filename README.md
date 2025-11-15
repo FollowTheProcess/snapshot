@@ -91,6 +91,10 @@ expression: value.Show() # The expression that generated the snapshot
 
 This format was inspired by [insta], a popular snapshot testing library in rust
 
+> [!TIP]
+> If you want a different format, you can implement your own! Just implement the `snapshot.Formatter` interface and pass it in
+> with the `snapshot.WithFormatter` option and you're away!
+
 ### 🔄 Automatic Updating
 
 Let's say you've got a bunch of snapshots saved already, and you change your implementation. *All* those snapshots will now likely need to change (after you've carefully reviewed the changes and decided they are okay!)
