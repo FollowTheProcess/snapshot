@@ -1,0 +1,9 @@
+source: snapshot_test.go
+description: This snapshot tests our auto update functionality
+expression: value
+---
+- hello
+- this
+- is
+- a
+- snapshot

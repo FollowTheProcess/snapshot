@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier
+_commit: v0.54.0
+_src_path: gh:FollowTheProcess/go-template
+author_name: Tom Fleet
+dependency_bot: renovate
+description: Snapshot testing library for Go
+github_url: https://github.com/FollowTheProcess/snapshot
+github_username: FollowTheProcess
+license: MIT
+linter: golangci-lint
+module_path: go.followtheprocess.codes/snapshot
+project_name: snapshot
+project_slug: snapshot
+project_type: library

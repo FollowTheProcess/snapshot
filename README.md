@@ -1,7 +1,7 @@
 # Snapshot
 
 <p align="center">
-<img src="https://github.com/FollowTheProcess/snapshot/raw/main/docs/img/logo.jpg" alt="logo" width=75%>
+<img src="https://github.com/FollowTheProcess/snapshot/raw/main/docs/img/logo.webp" alt="logo">
 </p>
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
@@ -11,21 +11,20 @@
 [![CI](https://github.com/FollowTheProcess/snapshot/workflows/CI/badge.svg)](https://github.com/FollowTheProcess/snapshot/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/FollowTheProcess/snapshot/branch/main/graph/badge.svg)](https://codecov.io/gh/FollowTheProcess/snapshot)
 
-Simple, intuitive snapshot testing with Go 📸
+Simple, intuitive snapshot testing for Go 📸
 
 > [!WARNING]
-> **snapshot is in early development and is not yet stable**
+> **snapshot is in early development and is not yet ready for use**
 
 - [Snapshot](#snapshot)
   - [Project Description](#project-description)
   - [Installation](#installation)
   - [Quickstart](#quickstart)
   - [Why use `snapshot`?](#why-use-snapshot)
-    - [📝 Total Control over Serialisation](#-total-control-over-serialisation)
+    - [📝 Consistent Serialisation](#-consistent-serialisation)
     - [🔄 Automatic Updating](#-automatic-updating)
     - [🗑️ Tidying Up](#️-tidying-up)
     - [🤓 Follows Go Conventions](#-follows-go-conventions)
-  - [Serialisation Rules](#serialisation-rules)
   - [Filters](#filters)
     - [Credits](#credits)
 
@@ -71,26 +70,30 @@ func TestSnapshot(t *testing.T) {
 
     snap.Snap([]string{"hello", "there", "this", "is", "a", "snapshot"})
 
-    // This will store the above slice in testdata/snapshots/TestSnapshot.snap.txt
+    // This will store the above snapshot in testdata/snapshots/TestSnapshot.snap
     // then all future checks will compare against this snapshot
 }
 ```
 
 ## Why use `snapshot`?
 
-### 📝 Total Control over Serialisation
+### 📝 Consistent Serialisation
 
-A few other libraries are out there for snapshot testing in Go, but they typically control the serialisation for you, using a generic object dumping library. This means you get what you get and there's not much option to change it.
+By default, a snapshot looks like this:
 
-Not very helpful if you want your snapshots to be as readable as possible!
+```yaml
+source: your_test.go
+description: An optional description of the snapshot
+expression: value.Show() # The expression that generated the snapshot
+---
+<your value>
+```
 
-With `snapshot`, you have full control over how your type is serialised to the snapshot file (if you need it). You can either:
+This format was inspired by [insta], a popular snapshot testing library in rust
 
-- Let `snapshot` take a best guess at how to serialise your type
-  - With or without "filters" to tweak the result, see [Filters](#filters) below for more info
-- Implement one of `snapshot.Snapper`, [json.Marshaler], [encoding.TextMarshaler], or [fmt.Stringer] to override how it's serialised
-
-See [Serialisation Rules](#serialisation-rules) 👇🏻 for more info on how `snapshot` decides how to snap your value
+> [!TIP]
+> If you want a different format, you can implement your own! Just implement the `snapshot.Formatter` interface and pass it in
+> with the `snapshot.WithFormatter` option and you're away!
 
 ### 🔄 Automatic Updating
 
@@ -164,24 +167,6 @@ The files will be named automatically after the test:
 
 > [!TIP]
 > If you want to split your snapshots with more granularity, you can name your table driven cases with a `/` in them (e.g. `"Group/subtest name"`) and the directory hierarchy will be created automatically for you, completely cross platform!
->
-> See an example of this [here](https://github.com/FollowTheProcess/test/blob/main/test_test.go)
-
-## Serialisation Rules
-
-`snapshot` deals with plain text files as snapshots, this keeps them easy to read/write for both computers and humans. But crucially, easy to diff in pull request reviews!
-
-Because of this, it needs to know how to serialise your value (which could be basically any valid construct in Go) to plain text, so we follow a few basic rules in priority order:
-
-- **`snapshot.Snapper`:** If your type implements the `Snapper` interface, this is preferred over all other potential serialisation, this allows you to have total control over how your type is snapshotted, do whatever you like in the `Snap` method, just return a `[]byte` that you'd like to look at in the snapshot and thats it!
-- **[json.Marshaler]:** If your type implements [json.Marshaler], this will be used and the snapshot will be a valid JSON file (using `MarshalIndent` for readability)
-- **[encoding.TextMarshaler]:** If your type implements [encoding.TextMarshaler], this will be used to render your value to the snapshot
-- **[fmt.Stringer]:** If your type implements the [fmt.Stringer] interface, this is then used instead
-- **Primitive Types:** Any primitive type in Go (`bool`, `int`, `string` etc.) is serialised according to the `%v` verb in the [fmt] package
-- **Fallback:** If your type hasn't been caught by any of the above rules, we will snap it using the `GoString` mechanism (the `%#v` print verb) so e.g. a `[]string` would serialise as `[]string{"one", "two", "three"}`
-
-> [!TIP]
-> `snapshot` effectively goes through this list top to bottom to discover how to serialise your type, so mechanisms at the top are preferentially chosen over mechanisms lower down. If your snapshot doesn't look quite right, consider implementing a method higher up the list to get the behaviour you need
 
 ## Filters
 
@@ -215,11 +200,8 @@ If you can find a regex for it, you can filter it out!
 
 ### Credits
 
-This package was created with [copier] and the [FollowTheProcess/go_copier] project template.
+This package was created with [copier] and the [FollowTheProcess/go-template] project template.
 
 [copier]: https://copier.readthedocs.io/en/stable/
-[FollowTheProcess/go_copier]: https://github.com/FollowTheProcess/go_copier
-[fmt]: https://pkg.go.dev/fmt
-[json.Marshaler]: https://pkg.go.dev/encoding/json#Marshaler
-[encoding.TextMarshaler]: https://pkg.go.dev/encoding#TextMarshaler
-[fmt.Stringer]: https://pkg.go.dev/fmt#Stringer
+[FollowTheProcess/go-template]: https://github.com/FollowTheProcess/go-template
+[insta]: https://crates.io/crates/insta

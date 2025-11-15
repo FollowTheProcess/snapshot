@@ -1,0 +1,8 @@
+source: snapshot_test.go
+expression: tt.value
+---
+- 1
+- 2
+- 3
+- 4
+- 5
