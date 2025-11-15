@@ -34,21 +34,6 @@ const (
 	green  = hue.Green
 )
 
-// Format is the format in which your snapshots will be serialised and deserialised.
-type Format string
-
-const (
-	// FormatInsta is a yaml based format popularised by the [insta]
-	// rust crate, it serialises a snapshot as two yaml documents in the same
-	// file, with metadata in the first document and the raw yaml value in
-	// the second
-	//
-	// This is the default format.
-	//
-	// [insta]: https://crates.io/crates/insta
-	FormatInsta Format = "insta"
-)
-
 // Runner is the snapshot testing runner.
 //
 // It holds configuration and state for the snapshot test in question.
