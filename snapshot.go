@@ -1,14 +1,8 @@
-// Package snapshot provides a mechanism and a simple interface for performing snapshot testing
-// in Go tests.
-//
-// Snapshots are stored under testdata, organised by test case name and may be updated automatically
-// by passing configuration in this package.
+// Package snapshot is a Snapshot testing library for Go.
 package snapshot // import "go.followtheprocess.codes/snapshot"
 
 import (
 	"bytes"
-	"encoding"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -20,11 +14,18 @@ import (
 
 	"go.followtheprocess.codes/hue"
 	"go.followtheprocess.codes/snapshot/internal/diff"
+	"go.followtheprocess.codes/snapshot/internal/format/insta"
 )
 
 const (
-	defaultFilePermissions = 0o644 // Default permissions for writing files, same as unix touch
-	defaultDirPermissions  = 0o755 // Default permissions for creating directories, same as unix mkdir
+	// Default permissions for writing files, same as unix touch.
+	defaultFilePermissions = 0o644
+
+	// Default permissions for creating directories, same as unix mkdir.
+	defaultDirPermissions = 0o755
+
+	// Snapshot file extension.
+	snapshotFileExtension = ".snap"
 )
 
 const (
@@ -33,164 +34,143 @@ const (
 	green  = hue.Green
 )
 
-// SnapShotter holds configuration and state and is responsible for performing
-// the tests and managing the snapshots.
-type SnapShotter struct {
-	tb      testing.TB
-	filters []filter
-	update  bool
-	clean   bool
+// Runner is the snapshot testing runner.
+//
+// It holds configuration and state for the snapshot test in question.
+type Runner struct {
+	tb          testing.TB
+	description string
+	formatter   Formatter
+	filters     []filter
+	update      bool
+	clean       bool
+	noColor     bool
 }
 
-// New builds and returns a new [SnapShotter], applying configuration
-// via functional options.
-func New(tb testing.TB, options ...Option) *SnapShotter { //nolint: thelper // This actually isn't a helper
-	shotter := &SnapShotter{
+// New initialises a new snapshot test [Runner].
+//
+// The behaviour of the snapshot test can be configured by passing
+// a number of [Option].
+func New(tb testing.TB, options ...Option) Runner {
+	tb.Helper()
+
+	runner := Runner{
 		tb: tb,
 	}
 
 	for _, option := range options {
-		if err := option(shotter); err != nil {
-			tb.Fatalf("snapshot.New(): %v", err)
+		if err := option(&runner); err != nil {
+			tb.Fatalf("snapshot.New(): %v\n", err)
+			return runner
 		}
 	}
 
-	return shotter
+	return runner
 }
 
-// Snap takes a snapshot of value and compares it against the previous snapshot stored under
-// testdata/snapshots using the name of the test as the filename.
+// Snap takes a snapshot of a value and compares it against the previous snapshot stored
+// under testdata/snapshots using the name of the test as the filepath.
 //
-// If there is no previous snapshot for this test, the current snapshot is saved and test is passed,
-// if there is an existing snapshot and it matches the current snapshot, the test is also passed.
+// If there is a previous snapshot saved for this test, the newly generated snapshot
+// is compared with the one on disk. If the two snapshots differ, the test is failed
+// and a rich diff is shown for comparison.
 //
-// If the current snapshot does not match the existing one, the test will fail with a rich diff
-// of the two snapshots for debugging.
-func (s *SnapShotter) Snap(value any) {
-	s.tb.Helper()
+// If the newly generated snapshot and the one previously saved are the same, the test passes.
+//
+// Likewise if there was no previous snapshot, the new one is written to disk and the
+// test passes.
+func (r Runner) Snap(value any) {
+	r.tb.Helper()
 
-	path := s.Path()
+	path := r.Path()
 
 	// Because subtests insert a '/' i.e. TestSomething/subtest1, we need to make
-	// all directories along that path so find the last dir along the path
-	// and use that in the call to MkDirAll
+	// all directories along that path so find the last dir and use that
 	dir := filepath.Dir(path)
 
-	// If clean is set, erase the entire snapshot directory then carry on,
-	// re-populating it with the fresh snaps
-	if s.clean {
-		toRemove := filepath.Join("testdata", "snapshots")
-		if err := os.RemoveAll(toRemove); err != nil {
-			s.tb.Fatalf("failed to delete %s: %v", toRemove, err)
+	// If clean is set, erase the snapshot directory for this test before
+	// re-populating it with fresh snapshots
+	if r.clean {
+		if err := os.RemoveAll(dir); err != nil {
+			r.tb.Fatalf("failed to delete %s: %v\n", dir, err)
 			return
 		}
 	}
 
-	// Check if one exists already
+	// Check if a snapshot already exists
 	exists, err := fileExists(path)
 	if err != nil {
-		s.tb.Fatalf("Snap: %v", err)
-	}
-
-	// Do the actual snapshotting
-	content := s.do(value)
-
-	if !exists || s.update {
-		// No previous snapshot, save the current one, potentially creating the
-		// directory structure for the first time, then pass the test by returning early
-		if err = os.MkdirAll(dir, defaultDirPermissions); err != nil {
-			s.tb.Fatalf("Snap: could not create snapshot dir: %v", err)
-		}
-
-		if s.update {
-			s.tb.Logf("Snap: updating snapshot %s", path)
-		}
-
-		if err = os.WriteFile(path, content, defaultFilePermissions); err != nil {
-			s.tb.Fatalf("Snap: could not write snapshot: %v", err)
-		}
-		// We're done
+		r.tb.Fatalf("Snap: %v", err)
 		return
 	}
 
-	// Previous snapshot already exists
-	previous, err := os.ReadFile(path)
+	// Do the actual snapshotting
+	if r.formatter == nil {
+		// Default to the insta formatter
+		//
+		//nolint:revive // Suspicious value receiver modified but actually this is fine
+		// as all we care about is this one function call
+		r.formatter = insta.NewFormatter(r.description)
+	}
+
+	content, err := r.formatter.Format(value)
 	if err != nil {
-		s.tb.Fatalf("Snap: could not read previous snapshot: %v", err)
+		r.tb.Fatalf("Snap: %v\n", err)
+	}
+
+	// Apply any filters
+	for _, filter := range r.filters {
+		content = filter.pattern.ReplaceAll(content, []byte(filter.replacement))
+	}
+
+	if !exists || r.update {
+		// No previous snapshot or we've been asked to update it, so save the current
+		// one, potentially creating the directory structure for the first time
+		if err = os.MkdirAll(dir, defaultDirPermissions); err != nil {
+			r.tb.Fatalf("Snap: could not create snapshot dir: %v\n", err)
+			return
+		}
+
+		if r.update {
+			r.tb.Logf("Snap: updating snapshot %s\n", path)
+		}
+
+		if err = os.WriteFile(path, content, defaultFilePermissions); err != nil {
+			r.tb.Fatalf("Snap: could not write snapshot: %v\n", err)
+		}
+
+		// We're done, return early
+		return
+	}
+
+	// Previous snapshot already existed
+	old, err := os.ReadFile(path)
+	if err != nil {
+		r.tb.Fatalf("Snap: could not read previous snapshot: %v\n", err)
+		return
 	}
 
 	// Normalise CRLF to LF everywhere
-	previous = bytes.ReplaceAll(previous, []byte("\r\n"), []byte("\n"))
+	old = bytes.ReplaceAll(old, []byte("\r\n"), []byte("\n"))
 
-	if diff := diff.Diff("previous", previous, "current", content); diff != nil {
-		s.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
+	if diff := diff.Diff("old", old, "new", content); diff != nil {
+		r.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff), r.noColor))
 	}
 }
 
 // Path returns the path that a snapshot would be saved at for any given test.
-func (s *SnapShotter) Path() string {
+func (r Runner) Path() string {
 	// Base directory under testdata where all snapshots are kept
 	base := filepath.Join("testdata", "snapshots")
 
 	// Name of the file generated from t.Name(), so for subtests and table driven tests
 	// this will be of the form TestSomething/subtest1 for example
-	file := s.tb.Name() + ".snap.txt"
+	file := r.tb.Name() + snapshotFileExtension
 
 	// Join up the base with the generate filepath
 	path := filepath.Join(base, file)
 
 	return path
-}
-
-// do actually does the snapshotting, returning the raw bytes of what was captured.
-func (s *SnapShotter) do(value any) []byte {
-	buf := &bytes.Buffer{}
-
-	switch val := value.(type) {
-	case Snapper:
-		content, err := val.Snap()
-		if err != nil {
-			s.tb.Fatalf("%T implements Snapper but Snap() returned an error: %v", val, err)
-			return nil
-		}
-
-		buf.Write(content)
-	case json.Marshaler:
-		// Use MarshalIndent for better readability
-		content, err := json.MarshalIndent(val, "", "  ")
-		if err != nil {
-			s.tb.Fatalf("%T implements json.Marshaler but MarshalJSON() returned an error: %v", val, err)
-			return nil
-		}
-
-		buf.Write(content)
-	case encoding.TextMarshaler:
-		content, err := val.MarshalText()
-		if err != nil {
-			s.tb.Fatalf("%T implements encoding.TextMarshaler but MarshalText() returned an error: %v", val, err)
-			return nil
-		}
-
-		buf.Write(content)
-	case fmt.Stringer:
-		buf.WriteString(val.String())
-	case string, []byte, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, uintptr, bool, float32, float64, complex64, complex128:
-		// For any primitive type just use %v
-		fmt.Fprintf(buf, "%v", val)
-	default:
-		// Fallback, use %#v as a best effort at generic printing
-		s.tb.Logf("Snap: falling back to GoString for %T, consider creating a new type and implementing snapshot.Snapper, encoding.TextMarshaler or fmt.Stringer", val)
-		fmt.Fprintf(buf, "%#v", val)
-	}
-
-	// Normalise line endings and apply any installed filters
-	content := bytes.ReplaceAll(buf.Bytes(), []byte("\r\n"), []byte("\n"))
-
-	for _, filter := range s.filters {
-		content = filter.pattern.ReplaceAll(content, []byte(filter.replacement))
-	}
-
-	return content
 }
 
 // fileExists returns whether a path exists and is a file.
@@ -212,7 +192,13 @@ func fileExists(path string) (bool, error) {
 }
 
 // prettyDiff takes a string diff in unified diff format and colourises it for easier viewing.
-func prettyDiff(diff string) string {
+//
+// if noColor is true, the original diff is returned unchanged.
+func prettyDiff(diff string, noColor bool) string {
+	if noColor {
+		return diff
+	}
+
 	lines := strings.Split(diff, "\n")
 	for i := range lines {
 		trimmed := strings.TrimSpace(lines[i])
