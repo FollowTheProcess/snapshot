@@ -100,3 +100,21 @@ func Filter(pattern, replacement string) Option {
 		return nil
 	}
 }
+
+// WithFormat sets the format that snapshots will be serialised and deserialised with.
+//
+// Currently snapshot supports only the [inta] compatible yaml format [FormatInsta], which
+// is the default.
+//
+// However in the future we may support alternative formats.
+func WithFormat(format Format) Option {
+	return func(r *Runner) error {
+		if format != FormatInsta {
+			return fmt.Errorf("invalid snapshot format, got %s, expected %s", format, FormatInsta)
+		}
+
+		r.format = format
+
+		return nil
+	}
+}

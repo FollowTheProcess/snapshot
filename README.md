@@ -1,7 +1,7 @@
 # Snapshot
 
 <p align="center">
-<img src="./docs/img/logo.webp" alt="logo">
+<img src="https://github.com/FollowTheProcess/snapshot/raw/main/docs/img/logo.webp" alt="logo">
 </p>
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)

@@ -74,6 +74,7 @@ func TestSnap(t *testing.T) {
 				tb,
 				snapshot.Description(tt.description),
 				snapshot.Color(os.Getenv("CI") == ""),
+				snapshot.WithFormat(snapshot.FormatInsta),
 			)
 
 			if tt.clean {
@@ -262,6 +263,18 @@ func TestClean(t *testing.T) {
 		_, err = os.Stat(snap.Path())
 		test.Ok(t, err)
 	})
+}
+
+func TestFormat(t *testing.T) {
+	buf := &bytes.Buffer{}
+	tb := &TB{out: buf, name: t.Name()}
+
+	test.False(t, tb.failed, test.Context("initial failed state should be false"))
+
+	// Invalid format
+	_ = snapshot.New(tb, snapshot.WithFormat("nonsense"))
+
+	test.True(t, tb.failed)
 }
 
 // TB is a fake implementation of [testing.TB] that simply records in internal
