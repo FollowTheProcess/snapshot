@@ -16,6 +16,11 @@ func NewFormatter() Formatter {
 	return Formatter{}
 }
 
+// Ext returns the file extension for a text snapshot.
+func (f Formatter) Ext() string {
+	return ".snap.txt"
+}
+
 // Format returns a plain text snapshot of the value.
 func (f Formatter) Format(value any) ([]byte, error) {
 	buf := &bytes.Buffer{}
