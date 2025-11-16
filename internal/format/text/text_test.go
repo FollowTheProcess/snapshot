@@ -65,7 +65,7 @@ func TestFormatter(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			test.ColorEnabled(os.Getenv("CI") == "")
 
-			path := filepath.Join("testdata", "TestFormatter", tt.name+".snap")
+			path := filepath.Join("testdata", "TestFormatter", tt.name+".snap.txt")
 
 			want, err := os.ReadFile(path)
 			test.Ok(t, err)

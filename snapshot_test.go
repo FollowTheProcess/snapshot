@@ -258,6 +258,10 @@ func (c customFormatter) Format(value any) ([]byte, error) {
 	return []byte("CONSTANT"), nil
 }
 
+func (c customFormatter) Ext() string {
+	return ".custom.txt"
+}
+
 func TestFormatter(t *testing.T) {
 	custom := customFormatter{}
 	snap := snapshot.New(t, snapshot.WithFormatter(custom))

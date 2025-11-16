@@ -22,9 +22,6 @@ const (
 
 	// Default permissions for creating directories, same as unix mkdir.
 	defaultDirPermissions = 0o755
-
-	// Snapshot file extension.
-	snapshotFileExtension = ".snap"
 )
 
 const (
@@ -160,7 +157,7 @@ func (r Runner) Path() string {
 
 	// Name of the file generated from t.Name(), so for subtests and table driven tests
 	// this will be of the form TestSomething/subtest1 for example
-	file := r.tb.Name() + snapshotFileExtension
+	file := r.tb.Name() + r.formatter.Ext()
 
 	// Join up the base with the generate filepath
 	path := filepath.Join(base, file)
