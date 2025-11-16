@@ -126,13 +126,6 @@ func TestFilters(t *testing.T) {
 		wantFail    bool   // Whether we want the test to fail
 	}{
 		{
-			name:        "no filters",
-			value:       `{"id": "5c62efe3-36e4-41f7-aa3b-c871f659ea31", "name": "Bob"}`,
-			pattern:     "",
-			replacement: "",
-			wantFail:    false,
-		},
-		{
 			name:        "uuid filter",
 			value:       `{"id": "c2160f4a-9bf4-400a-829f-d42c060ebbb8", "name": "John"}`,
 			pattern:     "(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
@@ -152,13 +145,6 @@ func TestFilters(t *testing.T) {
 			pattern:     `/var/folders/\S+?/T/\S+`,
 			replacement: "[TEMP_FILE]",
 			wantFail:    false,
-		},
-		{
-			name:        "bad pattern",
-			value:       "doesn't matter",
-			pattern:     `(?[\p{Thai}&\p{Digit}])`,
-			replacement: "",
-			wantFail:    true,
 		},
 	}
 

@@ -64,6 +64,11 @@ func New(tb testing.TB, options ...Option) Runner {
 		}
 	}
 
+	// Default to the insta formatter if none is set
+	if runner.formatter == nil {
+		runner.formatter = InstaFormatter(runner.description)
+	}
+
 	return runner
 }
 
@@ -101,15 +106,6 @@ func (r Runner) Snap(value any) {
 	if err != nil {
 		r.tb.Fatalf("Snap: %v", err)
 		return
-	}
-
-	// Do the actual snapshotting
-	if r.formatter == nil {
-		// Default to the insta formatter
-		//
-		//nolint:revive // Suspicious value receiver modified but actually this is fine
-		// as all we care about is this one function call
-		r.formatter = InstaFormatter(r.description)
 	}
 
 	content, err := r.formatter.Format(value)

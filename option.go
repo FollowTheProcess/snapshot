@@ -1,6 +1,7 @@
 package snapshot
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 )
@@ -90,6 +91,10 @@ func Color(enabled bool) Option {
 // see also [regexp.Expand] for documentation on how '$' may be used.
 func Filter(pattern, replacement string) Option {
 	return func(r *Runner) error {
+		if pattern == "" {
+			return errors.New("empty filter pattern")
+		}
+
 		re, err := regexp.Compile(pattern)
 		if err != nil {
 			return fmt.Errorf("could not compile filter regex: %w", err)
