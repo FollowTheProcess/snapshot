@@ -63,7 +63,7 @@ func (s Snapshot) save(w io.Writer) error {
 	return nil
 }
 
-// Formatter implements the [format.Formatter] interface and returns an
+// Formatter implements the [snapshot.Formatter] interface and returns an
 // insta-compatible snapshot format.
 type Formatter struct {
 	description string

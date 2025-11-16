@@ -92,7 +92,7 @@ expression: value.Show() # The expression that generated the snapshot
 This format was inspired by [insta], a popular snapshot testing library in rust
 
 > [!TIP]
-> If you want a different format, you can implement your own! Just implement the `snapshot.Formatter` interface and pass it in
+> If you want a different format, there is also a `TextFormatter` or you can implement your own! Just implement the `snapshot.Formatter` interface and pass it in
 > with the `snapshot.WithFormatter` option and you're away!
 
 ### 🔄 Automatic Updating
