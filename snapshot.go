@@ -14,7 +14,6 @@ import (
 
 	"go.followtheprocess.codes/hue"
 	"go.followtheprocess.codes/snapshot/internal/diff"
-	"go.followtheprocess.codes/snapshot/internal/format/insta"
 )
 
 const (
@@ -110,7 +109,7 @@ func (r Runner) Snap(value any) {
 		//
 		//nolint:revive // Suspicious value receiver modified but actually this is fine
 		// as all we care about is this one function call
-		r.formatter = insta.NewFormatter(r.description)
+		r.formatter = InstaFormatter(r.description)
 	}
 
 	content, err := r.formatter.Format(value)

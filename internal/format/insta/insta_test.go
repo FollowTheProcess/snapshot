@@ -37,7 +37,7 @@ func TestFormatter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := filepath.Join("testdata", "TestSave", tt.name+".snap")
+			path := filepath.Join("testdata", "TestFormatter", tt.name+".snap")
 
 			want, err := os.ReadFile(path)
 			test.Ok(t, err)
