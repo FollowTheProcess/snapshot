@@ -76,8 +76,13 @@ func NewFormatter(description string) Formatter {
 	}
 }
 
+// Ext returns the file extension for an insta format snapshot.
+func (f Formatter) Ext() string {
+	return ".snap"
+}
+
 // Format returns the insta formatted snapshot for a value.
-func (i Formatter) Format(value any) ([]byte, error) {
+func (f Formatter) Format(value any) ([]byte, error) {
 	// Skip: 2 so Format and caller are both skipped
 	const skip = 2
 
@@ -89,7 +94,7 @@ func (i Formatter) Format(value any) ([]byte, error) {
 	// Parse the file
 	fileSet := token.NewFileSet()
 
-	f, err := parser.ParseFile(fileSet, source, nil, parser.SkipObjectResolution)
+	file, err := parser.ParseFile(fileSet, source, nil, parser.SkipObjectResolution)
 	if err != nil {
 		return nil, fmt.Errorf("snapshot: could not parse %s: %w", source, err)
 	}
@@ -97,7 +102,7 @@ func (i Formatter) Format(value any) ([]byte, error) {
 	var expression string
 
 	// Let's go find it
-	for node := range ast.Preorder(f) {
+	for node := range ast.Preorder(file) {
 		// If it's not on the right line we know it's not it
 		start := fileSet.Position(node.Pos())
 		if start.Line != line {
@@ -152,7 +157,7 @@ func (i Formatter) Format(value any) ([]byte, error) {
 		Value: value,
 		Metadata: Metadata{
 			Source:      relativeSource,
-			Description: i.description,
+			Description: f.description,
 			Expression:  expression,
 		},
 	}

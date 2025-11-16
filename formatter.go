@@ -11,6 +11,10 @@ type Formatter interface {
 	// bytes are interpreted as the snapshot and will be written and read from disk
 	// during snapshot comparisons.
 	Format(value any) ([]byte, error)
+
+	// Ext returns the file extension for the snapshot, including the dot
+	// e.g. ".custom".
+	Ext() string
 }
 
 // InstaFormatter returns a [Formatter] that produces snapshots in the [insta]
