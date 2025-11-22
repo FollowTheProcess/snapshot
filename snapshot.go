@@ -40,7 +40,6 @@ type Runner struct {
 	filters     []filter
 	update      bool
 	clean       bool
-	noColor     bool
 }
 
 // New initialises a new snapshot test [Runner].
@@ -146,7 +145,7 @@ func (r Runner) Snap(value any) {
 	old = bytes.ReplaceAll(old, []byte("\r\n"), []byte("\n"))
 
 	if diff := diff.Diff("old", old, "new", content); diff != nil {
-		r.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff), r.noColor))
+		r.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
 	}
 }
 
@@ -186,11 +185,7 @@ func fileExists(path string) (bool, error) {
 // prettyDiff takes a string diff in unified diff format and colourises it for easier viewing.
 //
 // if noColor is true, the original diff is returned unchanged.
-func prettyDiff(diff string, noColor bool) string {
-	if noColor {
-		return diff
-	}
-
+func prettyDiff(diff string) string {
 	lines := strings.Split(diff, "\n")
 	for i := range lines {
 		trimmed := strings.TrimSpace(lines[i])

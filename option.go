@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+
+	"go.followtheprocess.codes/hue"
 )
 
 // Option is a functional option for configuring a snapshot test [Runner].
@@ -54,9 +56,7 @@ func Description(description string) Option {
 // Passing this option will override default detection and set the provided value.
 func Color(enabled bool) Option {
 	return func(r *Runner) error {
-		// noColor rather than color so that the default value is false
-		// which falls back to hue's autodetection
-		r.noColor = !enabled
+		hue.Enabled(enabled)
 		return nil
 	}
 }
