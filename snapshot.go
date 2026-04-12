@@ -9,11 +9,10 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"testing"
 
-	"go.followtheprocess.codes/hue"
-	"go.followtheprocess.codes/snapshot/internal/diff"
+	"go.followtheprocess.codes/diff"
+	"go.followtheprocess.codes/diff/render"
 )
 
 const (
@@ -22,12 +21,6 @@ const (
 
 	// Default permissions for creating directories, same as unix mkdir.
 	defaultDirPermissions = 0o755
-)
-
-const (
-	red    = hue.Red
-	header = hue.Cyan | hue.Bold
-	green  = hue.Green
 )
 
 // Runner is the snapshot testing runner.
@@ -144,8 +137,8 @@ func (r Runner) Snap(value any) {
 	// Normalise CRLF to LF everywhere
 	old = bytes.ReplaceAll(old, []byte("\r\n"), []byte("\n"))
 
-	if diff := diff.Diff("old", old, "new", content); diff != nil {
-		r.tb.Fatalf("\nMismatch\n--------\n%s\n", prettyDiff(string(diff)))
+	if lines := diff.Lines("old", old, "new", content); lines != nil {
+		r.tb.Fatalf("\nMismatch\n--------\n%s\n", render.Render(lines))
 	}
 }
 
@@ -180,29 +173,6 @@ func fileExists(path string) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// prettyDiff takes a string diff in unified diff format and colourises it for easier viewing.
-//
-// if noColor is true, the original diff is returned unchanged.
-func prettyDiff(diff string) string {
-	lines := strings.Split(diff, "\n")
-	for i := range lines {
-		trimmed := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(trimmed, "---") || strings.HasPrefix(trimmed, "- ") {
-			lines[i] = red.Sprint(lines[i])
-		}
-
-		if strings.HasPrefix(trimmed, "@@") {
-			lines[i] = header.Sprint(lines[i])
-		}
-
-		if strings.HasPrefix(trimmed, "+++") || strings.HasPrefix(trimmed, "+ ") {
-			lines[i] = green.Sprint(lines[i])
-		}
-	}
-
-	return strings.Join(lines, "\n")
 }
 
 // A filter is a mechanism for normalising non-deterministic snapshot contents such
