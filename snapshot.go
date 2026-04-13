@@ -137,8 +137,8 @@ func (r Runner) Snap(value any) {
 	// Normalise CRLF to LF everywhere
 	old = bytes.ReplaceAll(old, []byte("\r\n"), []byte("\n"))
 
-	if lines := diff.Lines("old", old, "new", content); lines != nil {
-		r.tb.Fatalf("\nMismatch\n--------\n%s\n", render.Render(lines))
+	if d := diff.New("old", old, "new", content); !d.Equal() {
+		r.tb.Fatalf("\nMismatch\n--------\n%s\n", render.Render(d))
 	}
 }
 
