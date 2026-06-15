@@ -20,6 +20,7 @@ type Option func(*Runner) error
 func Update(update bool) Option {
 	return func(r *Runner) error {
 		r.update = update
+
 		return nil
 	}
 }
@@ -34,6 +35,7 @@ func Update(update bool) Option {
 func Clean(clean bool) Option {
 	return func(r *Runner) error {
 		r.clean = clean
+
 		return nil
 	}
 }
@@ -43,6 +45,7 @@ func Clean(clean bool) Option {
 func Description(description string) Option {
 	return func(r *Runner) error {
 		r.description = description
+
 		return nil
 	}
 }
@@ -57,6 +60,7 @@ func Description(description string) Option {
 func Color(enabled bool) Option {
 	return func(r *Runner) error {
 		hue.Enabled(enabled)
+
 		return nil
 	}
 }

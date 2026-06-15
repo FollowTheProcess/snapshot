@@ -72,5 +72,6 @@ func newPerson() person {
 // so it has 2 callers, otherwise the source gets populated as GOROOT/testing etc.
 func snap(value any, description string) ([]byte, error) {
 	formatter := insta.NewFormatter(description)
+
 	return formatter.Format(value)
 }
