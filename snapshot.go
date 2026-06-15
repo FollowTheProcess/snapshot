@@ -49,6 +49,7 @@ func New(tb testing.TB, options ...Option) Runner {
 	for _, option := range options {
 		if err := option(&runner); err != nil {
 			tb.Fatalf("snapshot.New(): %v\n", err)
+
 			return runner
 		}
 	}
@@ -86,6 +87,7 @@ func (r Runner) Snap(value any) {
 	if r.clean {
 		if err := os.RemoveAll(dir); err != nil {
 			r.tb.Fatalf("failed to delete %s: %v\n", dir, err)
+
 			return
 		}
 	}
@@ -94,6 +96,7 @@ func (r Runner) Snap(value any) {
 	exists, err := fileExists(path)
 	if err != nil {
 		r.tb.Fatalf("Snap: %v", err)
+
 		return
 	}
 
@@ -112,6 +115,7 @@ func (r Runner) Snap(value any) {
 		// one, potentially creating the directory structure for the first time
 		if err = os.MkdirAll(dir, defaultDirPermissions); err != nil {
 			r.tb.Fatalf("Snap: could not create snapshot dir: %v\n", err)
+
 			return
 		}
 
@@ -131,6 +135,7 @@ func (r Runner) Snap(value any) {
 	old, err := os.ReadFile(path)
 	if err != nil {
 		r.tb.Fatalf("Snap: could not read previous snapshot: %v\n", err)
+
 		return
 	}
 
