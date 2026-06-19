@@ -6,7 +6,7 @@ require (
 	go.followtheprocess.codes/diff v0.2.0
 	go.followtheprocess.codes/hue v1.2.0
 	go.followtheprocess.codes/test v1.4.0
-	go.yaml.in/yaml/v4 v4.0.0-rc.5
+	go.yaml.in/yaml/v4 v4.0.0-rc.6
 )
 
 require (
