@@ -2,6 +2,7 @@ package snapshot
 
 import (
 	"go.followtheprocess.codes/snapshot/internal/format/insta"
+	"go.followtheprocess.codes/snapshot/internal/format/json"
 	"go.followtheprocess.codes/snapshot/internal/format/text"
 )
 
@@ -31,4 +32,10 @@ func InstaFormatter(description string) Formatter {
 // dumping the value as plain text.
 func TextFormatter() Formatter {
 	return text.NewFormatter()
+}
+
+// JSONFormatter returns a [Formatter] that produces snapshots by
+// serializing them as JSON documents.
+func JSONFormatter() Formatter {
+	return json.NewFormatter()
 }
