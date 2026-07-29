@@ -30,7 +30,7 @@ Simple, intuitive snapshot testing for Go 📸
 
 ## Project Description
 
-Snapshot testing is where you assert the result of your code is identical to a specific reference value... which is basically *all* testing. If you've ever written:
+Snapshot testing is where you assert the result of your code is identical to a specific reference value... which is basically _all_ testing. If you've ever written:
 
 ```go
 if got != want {
@@ -92,12 +92,12 @@ expression: value.Show() # The expression that generated the snapshot
 This format was inspired by [insta], a popular snapshot testing library in rust
 
 > [!TIP]
-> If you want a different format, there is also a `TextFormatter` or you can implement your own! Just implement the `snapshot.Formatter` interface and pass it in
-> with the `snapshot.WithFormatter` option and you're away!
+> If you want a different format, there is also a `TextFormatter` and a `JSONFormatter` or you can implement your own!
+> Just implement the `snapshot.Formatter` interface and pass it in with the `snapshot.WithFormatter` option and you're away!
 
 ### 🔄 Automatic Updating
 
-Let's say you've got a bunch of snapshots saved already, and you change your implementation. *All* those snapshots will now likely need to change (after you've carefully reviewed the changes and decided they are okay!)
+Let's say you've got a bunch of snapshots saved already, and you change your implementation. _All_ those snapshots will now likely need to change (after you've carefully reviewed the changes and decided they are okay!)
 
 `snapshot` lets you do this with one line of configuration, which you can set with a test flag or environment variable, or however you like:
 
@@ -123,7 +123,7 @@ func TestSomething(t *testing.T) {
 > If you declare top level flags in a test file, you can pass them to `go test`. So in this case, `go test -update` would store `true` in the update var. You can also use environments variables and test them with `os.Getenv` e.g. `UPDATE_SNAPSHOTS=true go test`. Whatever works for you.
 
 > [!WARNING]
-> This will update *all* snapshots in one go, so make sure you run the tests normally first and check the diffs to make sure the changes are as expected
+> This will update _all_ snapshots in one go, so make sure you run the tests normally first and check the diffs to make sure the changes are as expected
 
 ### 🗑️ Tidying Up
 
