@@ -6,15 +6,11 @@
 
 [![License](https://img.shields.io/github/license/FollowTheProcess/snapshot)](https://github.com/FollowTheProcess/snapshot)
 [![Go Reference](https://pkg.go.dev/badge/go.followtheprocess.codes/snapshot.svg)](https://pkg.go.dev/go.followtheprocess.codes/snapshot)
-[![Go Report Card](https://goreportcard.com/badge/github.com/FollowTheProcess/snapshot)](https://goreportcard.com/report/github.com/FollowTheProcess/snapshot)
 [![GitHub](https://img.shields.io/github/v/release/FollowTheProcess/snapshot?logo=github&sort=semver)](https://github.com/FollowTheProcess/snapshot)
 [![CI](https://github.com/FollowTheProcess/snapshot/workflows/CI/badge.svg)](https://github.com/FollowTheProcess/snapshot/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/FollowTheProcess/snapshot/branch/main/graph/badge.svg)](https://codecov.io/gh/FollowTheProcess/snapshot)
 
 Simple, intuitive snapshot testing for Go 📸
-
-> [!WARNING]
-> **snapshot is in early development and is not yet ready for use**
 
 - [Snapshot](#snapshot)
   - [Project Description](#project-description)
@@ -92,7 +88,7 @@ expression: value.Show() # The expression that generated the snapshot
 This format was inspired by [insta], a popular snapshot testing library in rust
 
 > [!TIP]
-> If you want a different format, there is also a `TextFormatter` and a `JSONFormatter` or you can implement your own!
+> If you want a different format, there is also a `TextFormatter`, a `JSONFormatter` and a `YAMLFormatter` or you can implement your own!
 > Just implement the `snapshot.Formatter` interface and pass it in with the `snapshot.WithFormatter` option and you're away!
 
 ### 🔄 Automatic Updating
@@ -196,7 +192,7 @@ But you can imagine more:
 - Go `time.Duration` values
 - Other types of uuids, ulids etc.
 
-If you can find a regex for it, you can filter it out!
+If you can write a regex for it, you can filter it out!
 
 ### Credits
 
