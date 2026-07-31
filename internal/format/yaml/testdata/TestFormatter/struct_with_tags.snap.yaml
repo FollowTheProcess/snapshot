@@ -1,0 +1,5 @@
+name: snapshot
+tags:
+  - go
+  - testing
+version: 2

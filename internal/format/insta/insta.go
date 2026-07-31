@@ -60,7 +60,7 @@ func (s Snapshot) save(w io.Writer) error {
 		return fmt.Errorf("could not write snapshot value: %w", err)
 	}
 
-	return nil
+	return encoder.Close()
 }
 
 // Formatter implements the [snapshot.Formatter] interface and returns an

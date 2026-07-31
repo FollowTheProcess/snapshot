@@ -4,6 +4,7 @@ import (
 	"go.followtheprocess.codes/snapshot/internal/format/insta"
 	"go.followtheprocess.codes/snapshot/internal/format/json"
 	"go.followtheprocess.codes/snapshot/internal/format/text"
+	"go.followtheprocess.codes/snapshot/internal/format/yaml"
 )
 
 // Formatter is an interface describing something capable of producing a snapshot.
@@ -38,4 +39,10 @@ func TextFormatter() Formatter {
 // serializing them as JSON documents.
 func JSONFormatter() Formatter {
 	return json.NewFormatter()
+}
+
+// YAMLFormatter returns a [Formatter] that produces snapshots by
+// serializing them as YAML documents.
+func YAMLFormatter() Formatter {
+	return yaml.NewFormatter()
 }

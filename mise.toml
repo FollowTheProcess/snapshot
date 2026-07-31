@@ -3,11 +3,6 @@
 #   mise run test -- -run TestFoo
 #   mise run bench -- -benchtime 5s
 
-[tools]
-typos = "latest"
-"go:golang.org/x/pkgsite/cmd/pkgsite" = "latest"
-golangci-lint = "latest"
-
 [vars]
 COV_DATA = "coverage.out"
 
