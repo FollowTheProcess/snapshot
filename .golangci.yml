@@ -8,7 +8,9 @@ formatters:
 
   settings:
     gofumpt:
-      extra-rules: true
+      extra:
+        clothe-returns: true
+        group-params: true
 
     golines:
       max-len: 120
