@@ -1,5 +1,5 @@
 // Package snapshot is a Snapshot testing library for Go.
-package snapshot // import "go.followtheprocess.codes/snapshot"
+package snapshot
 
 import (
 	"bytes"
