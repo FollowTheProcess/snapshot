@@ -1,6 +1,6 @@
 module go.followtheprocess.codes/snapshot
 
-go 1.26
+go 1.26.0
 
 require (
 	go.followtheprocess.codes/diff v0.2.0
@@ -10,6 +10,6 @@ require (
 )
 
 require (
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/term v0.44.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/term v0.48.0 // indirect
 )
